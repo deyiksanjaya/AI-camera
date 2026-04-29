@@ -72,7 +72,7 @@
         <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Memproses...</span>
     </div>
 
-    <!-- Top Solid Translucent Background (Ditunrunkan ke bawah dynamic island) -->
+    <!-- Top Solid Translucent Background -->
     <div class="fixed top-0 left-0 w-full h-[75px] bg-black/60 pointer-events-none z-0"></div>
 
     <!-- Top Right Controls (Pill diturunkan ke bawah latar transparan) -->
@@ -237,7 +237,24 @@
             document.head.appendChild(link);
 
             if ('serviceWorker' in navigator) {
-                const swCode = `self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim()); self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));`;
+                // Network First Strategy
+                const swCode = `
+                const CACHE_NAME = 'ai-magic-cam-v1';
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => self.clients.claim());
+                self.addEventListener('fetch', e => {
+                    if (e.request.method !== 'GET') return;
+                    e.respondWith(
+                        fetch(e.request)
+                        .then(res => {
+                            const resClone = res.clone();
+                            caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+                            return res;
+                        })
+                        .catch(() => caches.match(e.request))
+                    );
+                });
+                `;
                 const swBlob = new Blob([swCode], {type: 'application/javascript'});
                 navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(e => console.error("SW Error:", e));
             }
@@ -271,7 +288,9 @@
         let originalImageData = null;
         let generatedImageData = null;
         let isAiReady = false;
-        let fadeTriggered = false;
+        
+        // State preview: 'ORIGINAL', 'FADING', 'AI'
+        let previewState = 'ORIGINAL'; 
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
@@ -404,7 +423,7 @@
             // Tampilkan indikator 'A' saat proses AI dimulai
             flashAutoText.classList.remove('opacity-0');
             
-            // Jika sedang buka galeri, perlihatkan titik loadingnya
+            // Jika sedang buka galeri saat generate berjalan, perlihatkan dot abu-abunya
             if (!galleryModal.classList.contains('hidden')) {
                 previewLoadingDot.classList.remove('opacity-0');
             }
@@ -429,11 +448,11 @@
                     generatedImageData = `data:image/png;base64,${imgBase}`;
                     isAiReady = true;
                     
-                    // Sembunyikan indikator 'A' setelah gambar AI selesai di-generate
+                    // Sembunyikan indikator setelah selesai
                     flashAutoText.classList.add('opacity-0');
-                    
-                    // Sembunyikan titik preview & update gambar background supaya siap jika galeri sedang terbuka
                     previewLoadingDot.classList.add('opacity-0');
+                    
+                    // Update image base di galeri (berguna jika galeri sedang terbuka saat itu juga)
                     galleryGenerated.src = generatedImageData;
                 }
             } catch (error) {
@@ -463,9 +482,12 @@
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
                 galleryThumbnail.src = originalImageData;
                 
-                // Pastikan huruf A terlihat kembali ketika memfoto gambar baru
-                flashAutoText.classList.remove('opacity-0');
+                // Reset state untuk foto baru
+                previewState = 'ORIGINAL';
+                galleryOriginal.style.opacity = '1';
+                galleryOriginal.style.pointerEvents = 'auto'; // Agar bisa di-tap
                 
+                flashAutoText.classList.remove('opacity-0');
                 generateAiImage(originalImageData.split(',')[1]);
             }
         });
@@ -473,16 +495,23 @@
         document.getElementById('gallery-btn').addEventListener('click', () => {
             if (!originalImageData) return;
             
-            // Matikan kamera saat membuka preview untuk menghemat daya
+            // Matikan kamera agar hemat baterai/proses
             stopCamera();
 
             galleryOriginal.src = originalImageData;
             galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
-            galleryOriginal.style.opacity = '1';
-            fadeTriggered = false;
             
-            // Munculkan dot abu-abu jika gambar masih diproses
-            if (!isAiReady) {
+            // Atur tampilan berdasarkan state (apakah sudah pernah memudar/fade ke AI sebelumnya)
+            if (previewState === 'AI') {
+                galleryOriginal.style.opacity = '0';
+                galleryOriginal.style.pointerEvents = 'none'; // Biarkan user "Save Image" AI dengan menahan layar
+            } else {
+                galleryOriginal.style.opacity = '1';
+                galleryOriginal.style.pointerEvents = 'auto';
+            }
+            
+            // Atur dot loading abu-abu
+            if (!isAiReady && previewState !== 'AI') {
                 previewLoadingDot.classList.remove('opacity-0');
             } else {
                 previewLoadingDot.classList.add('opacity-0');
@@ -493,15 +522,42 @@
         });
 
         galleryModal.addEventListener('click', () => {
-            if (isAiReady && !fadeTriggered && generatedImageData) {
-                fadeTriggered = true;
-                setTimeout(() => { galleryOriginal.style.opacity = '0'; }, fadeDelaySec * 1000);
-            } else {
+            if (previewState === 'ORIGINAL' && isAiReady) {
+                // Proses memudar / transisi "ajaib"
+                previewState = 'FADING';
+                setTimeout(() => {
+                    // Cek lagi untuk menghindari bug user double click
+                    if (previewState === 'FADING') {
+                        galleryOriginal.style.opacity = '0';
+                        setTimeout(() => {
+                            if (previewState === 'FADING' || previewState === 'AI') {
+                                previewState = 'AI';
+                                galleryOriginal.style.pointerEvents = 'none'; // Memastikan gambar asli tidak menghalangi menu Save
+                                galleryThumbnail.src = generatedImageData;    // Thumbnail berubah jadi AI permanen
+                            }
+                        }, 1500); // 1.5s sesuai animasi di CSS
+                    }
+                }, fadeDelaySec * 1000);
+
+            } else if (previewState === 'AI' || (previewState === 'ORIGINAL' && !isAiReady)) {
+                // Tutup galeri jika gambar AI sudah ada, atau jika gambar belum selesai diproses
                 galleryModal.classList.add('hidden');
                 galleryModal.classList.remove('flex', 'fade-in');
                 previewLoadingDot.classList.add('opacity-0');
                 
-                // Nyalakan kembali kamera saat keluar dari preview
+                // Nyalakan ulang kamera
+                initCamera();
+                
+            } else if (previewState === 'FADING') {
+                // Jika user tap layar BERSAMAAN saat efek memudar sedang jalan, paksa ke akhir proses
+                previewState = 'AI';
+                galleryOriginal.style.opacity = '0';
+                galleryOriginal.style.pointerEvents = 'none';
+                galleryThumbnail.src = generatedImageData;
+                
+                galleryModal.classList.add('hidden');
+                galleryModal.classList.remove('flex', 'fade-in');
+                previewLoadingDot.classList.add('opacity-0');
                 initCamera();
             }
         });
