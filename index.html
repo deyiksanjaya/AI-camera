@@ -23,11 +23,7 @@
             -webkit-appearance: none !important;
         }
         video { pointer-events: none; }
-        .glass-ui {
-            background: rgba(28, 28, 29, 0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
+        
         .shutter-flash { animation: flash 0.15s ease-out; }
         @keyframes flash {
             0% { opacity: 0; }
@@ -40,23 +36,16 @@
             to { opacity: 1; transform: scale(1); }
         }
         #gallery-original { transition: opacity 1.5s ease-in-out; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        
-        /* Debug Console Styles */
-        #debug-console-container {
-            font-family: monospace;
-            font-size: 10px;
-        }
-        .debug-msg { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; margin-bottom: 2px; word-break: break-all; }
-        .debug-error { color: #ff6b6b; }
-        .debug-log { color: #4cd137; }
         
         /* Input fix for mobile */
         input, textarea {
-            font-size: 16px !important; /* Mencegah auto-zoom di iOS */
+            font-size: 16px !important;
             user-select: text !important;
             -webkit-user-select: text !important;
+        }
+        
+        .text-shadow-custom {
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
     </style>
 </head>
@@ -71,89 +60,101 @@
         <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Memproses...</span>
     </div>
 
-    <!-- Debug Toggle Button -->
-    <button id="debug-toggle-btn" onclick="toggleDebug()" class="fixed top-14 left-4 z-[160] w-8 h-8 bg-red-600/80 rounded-full border border-white/30 text-white font-bold flex items-center justify-center text-sm shadow-lg pointer-events-auto">
-        !
-    </button>
-
-    <!-- Floating Debug Console -->
-    <div id="debug-console-container" class="fixed top-24 left-4 right-4 h-[25vh] bg-black/80 border border-white/20 rounded-lg p-2 overflow-y-auto z-[155] flex flex-col gap-1 backdrop-blur-md pointer-events-auto transition-opacity">
-        <div class="text-xs font-bold text-yellow-400 border-b border-yellow-400/30 pb-1 mb-1 sticky top-0 bg-black/90 flex justify-between">
-            <span>Debug Console</span>
-            <span onclick="clearDebug()" class="text-gray-400 cursor-pointer">Clear</span>
+    <!-- Top Right Controls (Pill) -->
+    <div class="fixed top-12 right-4 bg-black/40 backdrop-blur-xl rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10">
+        <!-- Moon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <!-- Flash A -->
+        <div class="relative flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+            <span id="flash-auto-text" class="absolute -right-1.5 -bottom-1 text-[8px] font-bold bg-[#1c1c1d] text-white rounded-full px-[3px] leading-none tracking-tighter">A</span>
         </div>
-        <div id="debug-output" class="flex-1 overflow-y-auto pb-2"></div>
+        <!-- Grid Dots -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+            <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+            <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+            <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+        </svg>
     </div>
 
-    <!-- Top Bar -->
-    <div class="fixed top-0 left-0 w-full h-[12%] flex-shrink-0 z-10 bg-black/80 pt-safe">
-        <div class="absolute top-1/2 -translate-y-1/2 right-4 glass-ui rounded-full px-3 py-1.5 flex items-center gap-3.5 mt-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-            <div class="relative flex items-center justify-center">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-                <span id="flash-auto-text" class="absolute -right-2 -bottom-1 text-[9px] font-bold bg-[#1c1c1d] text-white rounded-full px-[3px] leading-none tracking-tighter transition-opacity duration-300">A</span>
+    <!-- Bottom Gradient Overlay for text readability -->
+    <div class="fixed bottom-0 left-0 w-full h-[35%] bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none z-0"></div>
+
+    <!-- Bottom Controls Area -->
+    <div class="fixed bottom-0 left-0 w-full pb-8 z-10 flex flex-col justify-end h-[250px] pointer-events-none">
+        
+        <!-- Zoom Controls -->
+        <div class="flex items-center justify-center gap-6 mb-5 pointer-events-auto">
+            <span class="text-[14px] font-medium text-white/90 text-shadow-custom cursor-pointer">0,5</span>
+            <div class="w-10 h-10 bg-[#1c1c1d]/80 backdrop-blur-md rounded-full flex items-center justify-center text-[#ffd60a] text-[15px] font-medium cursor-pointer shadow-lg border border-white/5">1x</div>
+            <span class="text-[14px] font-medium text-white/90 text-shadow-custom cursor-pointer">2</span>
+            <span class="text-[14px] font-medium text-white/90 text-shadow-custom cursor-pointer">4</span>
+            <span class="text-[14px] font-medium text-white/90 text-shadow-custom cursor-pointer">8</span>
+        </div>
+
+        <!-- Shutter Button -->
+        <div class="flex justify-center mb-6 pointer-events-auto">
+            <div id="shutter-btn" class="w-[72px] h-[72px] rounded-full border-[3px] border-white/60 flex items-center justify-center cursor-pointer active:scale-95 transition-transform bg-transparent">
+                <div class="w-[58px] h-[58px] bg-white rounded-full"></div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 12h.01M12 12h.01M16 12h.01" stroke-width="2.5" stroke-linecap="round" />
-            </svg>
-        </div>
-    </div>
-
-    <!-- Bottom Bar -->
-    <div class="fixed bottom-0 left-0 w-full h-[25%] flex flex-col items-center flex-shrink-0 pt-4 pb-safe justify-between z-10 bg-black/80 border-t border-white/5">
-        <div id="shutter-btn" class="w-[72px] h-[72px] rounded-full border-[4px] border-[#444] flex items-center justify-center cursor-pointer active:scale-95 transition-transform mt-2">
-            <div class="w-[56px] h-[56px] bg-white rounded-full"></div>
         </div>
 
-        <div class="w-full px-6 flex justify-between items-center pb-6">
+        <!-- Bottom Action Row -->
+        <div class="w-full px-6 flex justify-between items-center pointer-events-auto">
+            <!-- Gallery -->
             <div id="gallery-btn" class="w-[46px] h-[46px] rounded-full bg-zinc-800 overflow-hidden cursor-pointer active:opacity-70 transition-opacity flex-shrink-0 border border-white/20">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
             </div>
-            <div class="flex items-center gap-5 text-[12px] font-bold tracking-widest pl-2">
-                <span class="text-white/80 cursor-pointer transition-colors hover:text-white">VIDEO</span>
-                <div class="bg-[#1c1c1d]/80 rounded-full px-4 py-1.5 text-[#ffd60a] cursor-pointer shadow-md pointer-events-auto" onclick="openSettings()">PHOTO</div>
+            
+            <!-- Modes -->
+            <div class="flex items-center gap-5 text-[13px] font-semibold tracking-wider">
+                <span class="text-white/90 text-shadow-custom cursor-pointer transition-colors">VIDEO</span>
+                <div class="bg-[#1c1c1d]/80 backdrop-blur-md rounded-full px-4 py-1.5 text-[#ffd60a] cursor-pointer shadow-md" onclick="openSettings()">PHOTO</div>
             </div>
-            <div class="w-[46px] h-[46px] rounded-full glass-ui border border-white/10 flex items-center justify-center text-white cursor-pointer active:bg-[#2c2c2e] transition-colors flex-shrink-0 pointer-events-auto" onclick="toggleCamera()">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="1 4 1 10 7 10"></polyline>
-                    <polyline points="23 20 23 14 17 14"></polyline>
-                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+            
+            <!-- Flip Camera -->
+            <div class="w-[46px] h-[46px] rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white cursor-pointer active:bg-white/20 transition-colors flex-shrink-0" onclick="toggleCamera()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="17 1 21 5 17 9"></polyline>
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                    <polyline points="7 23 3 19 7 15"></polyline>
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
                 </svg>
             </div>
         </div>
+
     </div>
 
     <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
-        <div class="bg-[#1c1c1d] w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-white/10 pointer-events-auto">
+        <div class="bg-[#1c1c1d] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-white/10 pointer-events-auto">
             <h2 class="text-lg font-semibold mb-4 text-[#ffd60a]">AI Magic Settings</h2>
             
             <div class="mb-4">
                 <label class="block text-sm text-gray-400 mb-1">API Key Gemini (AI Studio):</label>
-                <input type="password" id="setting-api-key" class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" placeholder="AIzaSy...">
+                <input type="password" id="setting-api-key" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" placeholder="AIzaSy...">
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm text-gray-400 mb-1">Model Gemini:</label>
-                <input type="text" id="setting-ai-model" class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" placeholder="gemini-2.5-flash-image-preview">
+                <input type="text" id="setting-ai-model" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" placeholder="gemini-3.1-flash-image-preview">
             </div>
 
             <div class="mb-4">
                 <label class="block text-sm text-gray-400 mb-1">Prompt Rahasia:</label>
-                <textarea id="setting-prompt" class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] resize-none h-24" placeholder="Prompt image-to-image..."></textarea>
+                <textarea id="setting-prompt" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] resize-none h-24" placeholder="Prompt image-to-image..."></textarea>
             </div>
 
             <div class="mb-6">
                 <label class="block text-sm text-gray-400 mb-1">Delay transisi fade (detik):</label>
-                <input type="number" id="setting-delay" class="w-full bg-black/50 border border-white/20 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" min="0" step="0.5">
+                <input type="number" id="setting-delay" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" min="0" step="0.5">
             </div>
 
-            <button onclick="closeSettings()" class="w-full bg-[#ffd60a] text-black font-bold rounded-lg py-3 active:scale-95 transition-transform touch-manipulation">Simpan & Tutup</button>
+            <button onclick="closeSettings()" class="w-full bg-[#ffd60a] text-black font-bold rounded-xl py-3 active:scale-95 transition-transform touch-manipulation">Simpan & Tutup</button>
         </div>
     </div>
 
@@ -166,43 +167,6 @@
     <canvas id="photo-canvas" class="hidden"></canvas>
 
     <script>
-        // --- Custom Console Setup ---
-        const debugOutput = document.getElementById('debug-output');
-        const debugContainer = document.getElementById('debug-console-container');
-        let debugVisible = false;
-
-        function appendToConsole(msg, type) {
-            const div = document.createElement('div');
-            div.className = `debug-msg ${type === 'error' ? 'debug-error' : 'debug-log'}`;
-            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            debugOutput.appendChild(div);
-            debugOutput.scrollTop = debugOutput.scrollHeight;
-        }
-
-        const origLog = console.log;
-        const origErr = console.error;
-
-        console.log = (...args) => {
-            origLog.apply(console, args);
-            appendToConsole(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'log');
-        };
-
-        console.error = (...args) => {
-            origErr.apply(console, args);
-            appendToConsole(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error');
-        };
-
-        function toggleDebug() {
-            debugVisible = !debugVisible;
-            debugContainer.classList.toggle('hidden', !debugVisible);
-            console.log("Debug console: " + (debugVisible ? "ON" : "OFF"));
-        }
-
-        function clearDebug() { debugOutput.innerHTML = ''; }
-        
-        // Sembunyikan debug di awal
-        debugContainer.classList.add('hidden');
-
         // --- PWA Initialization ---
         function initPWA() {
             const manifestContent = {
@@ -226,7 +190,6 @@
         const videoElement = document.getElementById('camera-stream');
         const shutterBtn = document.getElementById('shutter-btn');
         const flashOverlay = document.getElementById('flash-overlay');
-        const flashAutoText = document.getElementById('flash-auto-text');
         const galleryThumbnail = document.getElementById('gallery-thumbnail');
         const galleryModal = document.getElementById('gallery-modal');
         const galleryOriginal = document.getElementById('gallery-original');
@@ -250,7 +213,7 @@
 
         // Load State
         let userApiKey = localStorage.getItem('gemini_api_key') || "";
-        let aiModel = localStorage.getItem('ai_model') || "gemini-2.5-flash-image-preview";
+        let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades with mainstream card design";
         let fadeDelaySec = parseFloat(localStorage.getItem('fade_delay')) || 2;
 
@@ -266,7 +229,6 @@
                 videoElement.srcObject = stream;
                 currentStream = stream;
                 videoElement.play();
-                console.log("Kamera aktif (" + currentFacingMode + ")");
             } catch (err) {
                 console.error("Kamera Error:", err);
             }
@@ -281,12 +243,11 @@
         function openSettings() {
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
-            console.log("Buka settings");
         }
 
         function closeSettings() {
             userApiKey = settingApiKey.value.trim();
-            aiModel = settingAiModel.value.trim() || "gemini-2.5-flash-image-preview";
+            aiModel = settingAiModel.value.trim() || "gemini-3.1-flash-image-preview";
             aiPromptStr = settingPrompt.value;
             fadeDelaySec = parseFloat(settingDelay.value) || 2;
 
@@ -297,16 +258,11 @@
 
             settingsModal.classList.remove('flex');
             settingsModal.classList.add('hidden');
-            console.log("Settings disimpan!");
         }
 
         async function generateAiImage(base64Data) {
-            if (!userApiKey) {
-                console.error("API Key Kosong!");
-                return;
-            }
+            if (!userApiKey) return;
             isAiReady = false;
-            flashAutoText.classList.remove('opacity-0');
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${userApiKey}`;
@@ -319,11 +275,7 @@
                     })
                 });
                 
-                if (!response.ok) {
-                    const err = await response.text();
-                    console.error("API Error:", response.status, err);
-                    return;
-                }
+                if (!response.ok) return;
 
                 const result = await response.json();
                 const imgBase = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
@@ -331,14 +283,9 @@
                 if(imgBase) {
                     generatedImageData = `data:image/png;base64,${imgBase}`;
                     isAiReady = true;
-                    flashAutoText.classList.add('opacity-0');
-                    console.log("AI Ready!");
-                } else {
-                    console.error("No image part in response");
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
-                flashAutoText.classList.add('opacity-0');
             }
         }
 
@@ -361,7 +308,6 @@
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
                 galleryThumbnail.src = originalImageData;
                 generateAiImage(originalImageData.split(',')[1]);
-                console.log("Foto dijepret.");
             }
         });
 
