@@ -218,8 +218,8 @@
         <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10" alt="Generated">
         <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20" alt="Original">
         
-        <!-- Loading Dot Indicator di Pojok Kiri Bawah -->
-        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1.5 h-1.5 bg-blue-500 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        <!-- Loading Dot Indicator di Pojok Kiri Bawah (Diperkecil & Warna Abu) -->
+        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1 h-1 bg-gray-400 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -481,7 +481,7 @@
             galleryOriginal.style.opacity = '1';
             fadeTriggered = false;
             
-            // Munculkan dot biru jika gambar masih diproses
+            // Munculkan dot abu-abu jika gambar masih diproses
             if (!isAiReady) {
                 previewLoadingDot.classList.remove('opacity-0');
             } else {
