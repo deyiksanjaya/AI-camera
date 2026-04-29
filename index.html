@@ -43,6 +43,22 @@
             user-select: text !important;
             -webkit-user-select: text !important;
         }
+
+        /* Custom Scrollbar for Settings */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4); 
+        }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden text-white select-none bg-black">
@@ -56,11 +72,11 @@
         <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Memproses...</span>
     </div>
 
-    <!-- Top Solid Translucent Background (Ends just above the icons) -->
-    <div class="fixed top-0 left-0 w-full h-[40px] bg-black/60 pointer-events-none z-0"></div>
+    <!-- Top Solid Translucent Background (Ditunrunkan ke bawah dynamic island) -->
+    <div class="fixed top-0 left-0 w-full h-[75px] bg-black/60 pointer-events-none z-0"></div>
 
-    <!-- Top Right Controls (Pill) -->
-    <div class="fixed top-12 right-4 bg-black/50 rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10">
+    <!-- Top Right Controls (Pill diturunkan ke bawah latar transparan) -->
+    <div class="fixed top-[80px] right-4 bg-black/50 rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10">
         <!-- Moon -->
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -141,30 +157,59 @@
 
     <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-4">
-        <div class="bg-[#1c1c1d] w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-white/10 pointer-events-auto">
-            <h2 class="text-lg font-semibold mb-4 text-[#ffd60a]">AI Magic Settings</h2>
+        <div class="bg-[#1c1c1d] w-full max-w-[90%] max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 pointer-events-auto overflow-hidden">
             
-            <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">API Key Gemini (AI Studio):</label>
-                <input type="password" id="setting-api-key" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" placeholder="AIzaSy...">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center shrink-0">
+                <h2 class="text-lg font-semibold text-[#ffd60a]">AI Magic Settings</h2>
+                <button onclick="closeSettings()" class="text-gray-400 hover:text-white transition-colors p-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div class="mb-5">
+                    <label class="block text-sm text-gray-400 mb-1.5 font-medium">API Key Gemini (AI Studio):</label>
+                    <input type="password" id="setting-api-key" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] transition-colors" placeholder="AIzaSy...">
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-sm text-gray-400 mb-1.5 font-medium">Model Gemini:</label>
+                    <input type="text" id="setting-ai-model" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] transition-colors" placeholder="gemini-3.1-flash-image-preview">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm text-gray-400 mb-1.5 font-medium">Delay transisi fade (detik):</label>
+                    <input type="number" id="setting-delay" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] transition-colors" min="0" step="0.5">
+                </div>
+
+                <!-- Prompt Manager Section -->
+                <div class="border-t border-white/10 pt-5 mt-2">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-sm text-[#ffd60a] font-medium">Prompt Rahasia (Aktif):</label>
+                    </div>
+                    
+                    <textarea id="setting-prompt" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] resize-none h-24 mb-3 transition-colors placeholder-gray-600" placeholder="Ketik prompt baru di sini..."></textarea>
+                    
+                    <button onclick="saveCurrentPrompt()" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl py-2.5 mb-5 active:scale-[0.98] transition-all text-sm border border-white/10">
+                        + Simpan ke Draft
+                    </button>
+
+                    <label class="block text-sm text-gray-400 mb-2 font-medium">Draft Prompt Tersimpan:</label>
+                    <div id="prompt-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+                        <!-- List draft prompt akan di-render di sini via JS -->
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">Model Gemini:</label>
-                <input type="text" id="setting-ai-model" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" placeholder="gemini-3.1-flash-image-preview">
+            <!-- Modal Footer -->
+            <div class="p-6 border-t border-white/10 shrink-0">
+                <button onclick="closeSettings()" class="w-full bg-[#ffd60a] text-black font-bold rounded-xl py-3.5 active:scale-[0.98] transition-transform touch-manipulation shadow-lg">Simpan & Tutup</button>
             </div>
-
-            <div class="mb-4">
-                <label class="block text-sm text-gray-400 mb-1">Prompt Rahasia:</label>
-                <textarea id="setting-prompt" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] resize-none h-24" placeholder="Prompt image-to-image..."></textarea>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-sm text-gray-400 mb-1">Delay transisi fade (detik):</label>
-                <input type="number" id="setting-delay" class="w-full bg-black/50 border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a]" min="0" step="0.5">
-            </div>
-
-            <button onclick="closeSettings()" class="w-full bg-[#ffd60a] text-black font-bold rounded-xl py-3 active:scale-95 transition-transform touch-manipulation">Simpan & Tutup</button>
         </div>
     </div>
 
@@ -172,6 +217,9 @@
     <div id="gallery-modal" class="fixed inset-0 bg-black z-[100] hidden items-center justify-center cursor-pointer">
         <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10" alt="Generated">
         <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20" alt="Original">
+        
+        <!-- Loading Dot Indicator di Pojok Kiri Bawah -->
+        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1.5 h-1.5 bg-blue-500 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -205,11 +253,16 @@
         const galleryModal = document.getElementById('gallery-modal');
         const galleryOriginal = document.getElementById('gallery-original');
         const galleryGenerated = document.getElementById('gallery-generated');
+        const previewLoadingDot = document.getElementById('preview-loading-dot');
+        
+        // Settings Elements
         const settingsModal = document.getElementById('settings-modal');
         const settingApiKey = document.getElementById('setting-api-key');
         const settingAiModel = document.getElementById('setting-ai-model');
         const settingPrompt = document.getElementById('setting-prompt');
         const settingDelay = document.getElementById('setting-delay');
+        const promptListContainer = document.getElementById('prompt-list');
+        
         const canvas = document.getElementById('photo-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -227,12 +280,15 @@
         let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades with mainstream card design";
         let fadeDelaySec = parseFloat(localStorage.getItem('fade_delay')) || 2;
+        let savedPrompts = JSON.parse(localStorage.getItem('saved_prompts') || '[]');
 
+        // Initialize Settings Modal Values
         settingApiKey.value = userApiKey;
         settingAiModel.value = aiModel;
         settingPrompt.value = aiPromptStr;
         settingDelay.value = fadeDelaySec;
 
+        // --- Camera Functions ---
         async function initCamera() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
@@ -264,7 +320,63 @@
             initCamera();
         }
 
+        // --- Settings & Prompt Manager Functions ---
+        function renderPromptList() {
+            promptListContainer.innerHTML = '';
+            
+            if (savedPrompts.length === 0) {
+                promptListContainer.innerHTML = '<div class="text-xs text-gray-500 italic p-2 text-center">Belum ada draft tersimpan.</div>';
+                return;
+            }
+
+            savedPrompts.forEach((prompt, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2.5 hover:bg-black/60 transition-colors group';
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-xs text-gray-300 truncate pr-2 cursor-pointer flex-1';
+                textSpan.textContent = prompt;
+                textSpan.title = prompt;
+                textSpan.onclick = () => {
+                    settingPrompt.value = prompt;
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1 rounded transition-colors';
+                deleteBtn.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                `;
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deletePrompt(index);
+                };
+
+                item.appendChild(textSpan);
+                item.appendChild(deleteBtn);
+                promptListContainer.appendChild(item);
+            });
+        }
+
+        function saveCurrentPrompt() {
+            const currentVal = settingPrompt.value.trim();
+            if (currentVal && !savedPrompts.includes(currentVal)) {
+                savedPrompts.unshift(currentVal); // Add to beginning
+                localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
+                renderPromptList();
+            }
+        }
+
+        function deletePrompt(index) {
+            savedPrompts.splice(index, 1);
+            localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
+            renderPromptList();
+        }
+
         function openSettings() {
+            renderPromptList();
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
         }
@@ -284,12 +396,18 @@
             settingsModal.classList.add('hidden');
         }
 
+        // --- AI Generation ---
         async function generateAiImage(base64Data) {
             if (!userApiKey) return;
             isAiReady = false;
             
             // Tampilkan indikator 'A' saat proses AI dimulai
             flashAutoText.classList.remove('opacity-0');
+            
+            // Jika sedang buka galeri, perlihatkan titik loadingnya
+            if (!galleryModal.classList.contains('hidden')) {
+                previewLoadingDot.classList.remove('opacity-0');
+            }
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${userApiKey}`;
@@ -302,7 +420,7 @@
                     })
                 });
                 
-                if (!response.ok) return;
+                if (!response.ok) throw new Error("API Gagal");
 
                 const result = await response.json();
                 const imgBase = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
@@ -313,12 +431,19 @@
                     
                     // Sembunyikan indikator 'A' setelah gambar AI selesai di-generate
                     flashAutoText.classList.add('opacity-0');
+                    
+                    // Sembunyikan titik preview & update gambar background supaya siap jika galeri sedang terbuka
+                    previewLoadingDot.classList.add('opacity-0');
+                    galleryGenerated.src = generatedImageData;
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
+                flashAutoText.classList.add('opacity-0');
+                previewLoadingDot.classList.add('opacity-0');
             }
         }
 
+        // --- Event Listeners ---
         shutterBtn.addEventListener('click', () => {
             if (videoElement.readyState >= 2) {
                 flashOverlay.classList.remove('shutter-flash');
@@ -355,6 +480,14 @@
             galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
             galleryOriginal.style.opacity = '1';
             fadeTriggered = false;
+            
+            // Munculkan dot biru jika gambar masih diproses
+            if (!isAiReady) {
+                previewLoadingDot.classList.remove('opacity-0');
+            } else {
+                previewLoadingDot.classList.add('opacity-0');
+            }
+
             galleryModal.classList.remove('hidden');
             galleryModal.classList.add('flex', 'fade-in');
         });
@@ -366,6 +499,7 @@
             } else {
                 galleryModal.classList.add('hidden');
                 galleryModal.classList.remove('flex', 'fade-in');
+                previewLoadingDot.classList.add('opacity-0');
                 
                 // Nyalakan kembali kamera saat keluar dari preview
                 initCamera();
