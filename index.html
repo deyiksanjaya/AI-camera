@@ -7,6 +7,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>AI Magic Camera</title>
+    
+    <!-- KUNCI UNTUK IOS HOMESCREEN ICON -->
+    <link rel="apple-touch-icon" href="icon-512.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -218,7 +222,7 @@
         <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10" alt="Generated">
         <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20" alt="Original">
         
-        <!-- Loading Dot Indicator di Pojok Kiri Bawah (Diperkecil & Warna Abu) -->
+        <!-- Loading Dot Indicator di Pojok Kiri Bawah -->
         <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1 h-1 bg-gray-400 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
     </div>
 
@@ -227,13 +231,19 @@
     <script>
         // --- PWA Initialization ---
         function initPWA() {
+            // Encode manifest sebagai Data URI agar lebih andal di beberapa browser
             const manifestContent = {
                 name: "AI Magic Camera", short_name: "AICam", start_url: ".", display: "standalone",
                 background_color: "#000000", theme_color: "#000000",
                 icons: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
             };
-            const manifestBlob = new Blob([JSON.stringify(manifestContent)], {type: 'application/json'});
-            const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(manifestBlob);
+            
+            // Ubah objek JSON ke string lalu encode (untuk format data URI base64 yang lebih handal)
+            const base64Manifest = btoa(JSON.stringify(manifestContent));
+            
+            const link = document.createElement('link'); 
+            link.rel = 'manifest'; 
+            link.href = 'data:application/manifest+json;base64,' + base64Manifest;
             document.head.appendChild(link);
 
             if ('serviceWorker' in navigator) {
