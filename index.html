@@ -136,7 +136,7 @@
         <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
             
-            <!-- Gallery (Kembali bulat penuh rounded-full) -->
+            <!-- Gallery (Tombol bulat penuh) -->
             <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
             </div>
@@ -576,11 +576,9 @@
 
             resetZoom();
 
-            // 1. Tampilkan modal secara transparan dulu
             galleryModal.classList.remove('hidden');
             galleryModal.classList.add('flex');
             
-            // 2. Set posisi awal wrapper sama persis dengan tombol gallery
             const btnRect = galleryBtn.getBoundingClientRect();
             galleryAnimWrapper.style.transition = 'none';
             galleryAnimWrapper.style.left = `${btnRect.left}px`;
@@ -590,10 +588,8 @@
             galleryAnimWrapper.style.borderRadius = '50%';
             galleryModal.style.backgroundColor = 'transparent';
 
-            // 3. Paksa reflow supaya posisi awal terbaca browser
             void galleryAnimWrapper.offsetWidth;
 
-            // 4. Jalankan animasi berubah jadi fullscreen
             galleryAnimWrapper.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
             galleryModal.style.transition = 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
             
@@ -605,42 +601,45 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
-        // --- Logic Zoom & Tap pada Gallery ---
+        // --- Logic Gestures (Tap, Zoom, dan Swipe Down) ---
         let scale = 1;
         let startScale = 1; 
         let posX = 0, posY = 0;
+        let swipeDeltaY = 0; // Tambahan untuk efek visual pas swipe ke bawah
         let startDistance = 0;
         let startPanX = 0, startPanY = 0;
         let isPointerDown = false;
         let pointerStart = {x: 0, y: 0};
         let pointers = [];
-        let isTap = true;
+        let maxPointers = 0; // Lacak maksimal jari di layar untuk pisahin swipe 1 jari vs zoom out
 
         function updateZoomTransform() {
-            if (scale === 1) { posX = 0; posY = 0; }
-            zoomContainer.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+            if (scale === 1 && swipeDeltaY === 0) { posX = 0; posY = 0; }
+            zoomContainer.style.transform = `translate(${posX}px, ${posY + swipeDeltaY}px) scale(${scale})`;
         }
 
         function resetZoom() {
             scale = 1; startScale = 1; 
-            posX = 0; posY = 0;
+            posX = 0; posY = 0; swipeDeltaY = 0;
             updateZoomTransform();
         }
 
         galleryModal.addEventListener('pointerdown', (e) => {
             e.preventDefault(); 
             pointers.push(e);
+            
+            if (pointers.length > maxPointers) maxPointers = pointers.length;
 
             if (pointers.length === 1) {
                 isPointerDown = true;
                 pointerStart = {x: e.clientX, y: e.clientY};
-                isTap = true; 
+                swipeDeltaY = 0;
+                
                 if (scale > 1) {
                     startPanX = e.clientX - posX;
                     startPanY = e.clientY - posY;
                 }
             } else if (pointers.length === 2) {
-                isTap = false;
                 startDistance = Math.hypot(
                     pointers[0].clientX - pointers[1].clientX,
                     pointers[0].clientY - pointers[1].clientY
@@ -654,7 +653,6 @@
             if (index !== -1) pointers[index] = e;
 
             if (pointers.length === 2) {
-                isTap = false;
                 const currentDistance = Math.hypot(
                     pointers[0].clientX - pointers[1].clientX,
                     pointers[0].clientY - pointers[1].clientY
@@ -662,14 +660,14 @@
                 
                 if (startDistance > 0) {
                     const zoomDelta = currentDistance / startDistance;
-                    scale = Math.min(Math.max(1, startScale * zoomDelta), 5);
+                    // Clamp scale min 1
+                    scale = Math.max(1, startScale * zoomDelta);
+                    scale = Math.min(scale, 5); 
+                    swipeDeltaY = 0; // Batalin swipe visual kalo lagi nge-zoom
                     updateZoomTransform();
                 }
             } else if (pointers.length === 1 && isPointerDown) {
-                const dist = Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y);
-                if (dist > 10) isTap = false;
-
-                if (scale > 1 && !isTap) {
+                if (scale > 1) {
                     let newPosX = e.clientX - startPanX;
                     let newPosY = e.clientY - startPanY;
 
@@ -680,6 +678,21 @@
                     posY = Math.max(-maxPosY, Math.min(maxPosY, newPosY));
 
                     updateZoomTransform();
+                } else if (maxPointers === 1 && scale === 1) {
+                    // Logic efek visual saat Swipe Down (1 Jari)
+                    const deltaY = e.clientY - pointerStart.y;
+                    const absDeltaX = Math.abs(e.clientX - pointerStart.x);
+                    
+                    // Pastikan arah dominan ke bawah
+                    if (deltaY > 0 && deltaY > absDeltaX) {
+                        swipeDeltaY = deltaY * 0.4; // Kasih efek resistensi (gak bergerak secepat jari)
+                        updateZoomTransform();
+                        // Redupin background dikit pas ditarik
+                        galleryModal.style.backgroundColor = `rgba(0,0,0,${Math.max(0.4, 1 - (deltaY / 400))})`;
+                    } else {
+                        swipeDeltaY = 0;
+                        updateZoomTransform();
+                    }
                 }
             }
         });
@@ -699,15 +712,36 @@
             if (pointers.length === 0) {
                 isPointerDown = false;
                 
+                if (maxPointers === 1 && scale === 1) {
+                    const deltaY = e.clientY - pointerStart.y;
+                    const absDeltaX = Math.abs(e.clientX - pointerStart.x);
+                    
+                    // Kalo swipe ke bawahnya udah cukup jauh (>80px), baru tutup!
+                    if (deltaY > 80 && deltaY > absDeltaX * 1.5) {
+                        swipeDeltaY = 0;
+                        closeGallery();
+                    } else {
+                        // Kalo gak cukup jauh (cuma tap atau geser dikit), batalin efek swipe down
+                        swipeDeltaY = 0;
+                        updateZoomTransform();
+                        galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
+                        
+                        // Deteksi Tap Asli (hampir ga ada pergerakan jari)
+                        if (Math.abs(deltaY) < 10 && absDeltaX < 10) {
+                            handleGalleryTap();
+                        }
+                    }
+                } else {
+                    swipeDeltaY = 0;
+                    updateZoomTransform();
+                }
+
+                // Reset zoom kalo zoom out ke bawah batas
                 if (scale <= 1.05) {
                     resetZoom();
                 }
-
-                if (isTap && scale === 1) {
-                    handleGalleryTap();
-                }
                 
-                isTap = true;
+                maxPointers = 0; // Reset state gesture untuk sesi touch berikutnya
             }
         };
 
@@ -716,9 +750,11 @@
         galleryModal.addEventListener('pointerleave', handlePointerUp);
 
 
-        // --- Gallery State & Transition Control (TUTUP GALLERY ANIMASI) ---
+        // --- Fungsi Tutup Gallery (DIPANGGIL CUMA PAS SWIPE KE BAWAH) ---
         function closeGallery() {
-            // Animasi reverse: kembali ke tombol gallery
+            swipeDeltaY = 0;
+            updateZoomTransform();
+            
             const btnRect = galleryBtn.getBoundingClientRect();
             
             galleryAnimWrapper.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -736,37 +772,41 @@
                 galleryModal.classList.add('hidden');
                 galleryModal.classList.remove('flex');
                 initCamera();
-            }, 400); // Tunggu sampai animasi transition selesai
+            }, 400); 
         }
 
+        // --- Fungsi Handle Tap (NGAH-TAP CUMA BUAT TRANSISI, GAK NUTUP!) ---
         function handleGalleryTap() {
             if (scale > 1) return; 
 
-            if (previewState === 'ORIGINAL' && isAiReady) {
-                previewState = 'FADING';
-                setTimeout(() => {
-                    if (previewState === 'FADING') {
-                        galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
-                        galleryOriginal.style.opacity = '0';
-                        
-                        setTimeout(() => {
-                            if (previewState === 'FADING' || previewState === 'AI') {
-                                previewState = 'AI';
-                                galleryThumbnail.src = generatedImageData;
-                            }
-                        }, transitionType === 'fade' ? 1500 : 50);
-                    }
-                }, fadeDelaySec * 1000);
-
-            } else if (previewState === 'AI' || (previewState === 'ORIGINAL' && !isAiReady)) {
-                closeGallery();
+            if (previewState === 'ORIGINAL') {
+                if (isAiReady) {
+                    previewState = 'FADING';
+                    setTimeout(() => {
+                        if (previewState === 'FADING') {
+                            galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
+                            galleryOriginal.style.opacity = '0';
+                            
+                            setTimeout(() => {
+                                if (previewState === 'FADING' || previewState === 'AI') {
+                                    previewState = 'AI';
+                                    galleryThumbnail.src = generatedImageData;
+                                }
+                            }, transitionType === 'fade' ? 1500 : 50);
+                        }
+                    }, fadeDelaySec * 1000);
+                }
+                // Kalau AI belum ready, diem aja (Gak panggil closeGallery lagi)
+                
             } else if (previewState === 'FADING') {
+                // SKIP ANIMASI JADI INSTAN
                 previewState = 'AI';
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
                 galleryThumbnail.src = generatedImageData;
-                closeGallery();
-            }
+                
+            } 
+            // Kalau udah di state 'AI', tap gak ngapa-ngapain. Tutup harus swipe ke bawah!
         }
 
         window.addEventListener('load', initCamera);
