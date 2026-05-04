@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Camera</title>
+    <title>AI Magic Camera</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -29,11 +29,6 @@
             0% { opacity: 0; }
             50% { opacity: 1; }
             100% { opacity: 0; }
-        }
-        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
         }
         
         /* Input fix for mobile */
@@ -141,7 +136,7 @@
         <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
             
-            <!-- Gallery -->
+            <!-- Gallery (Kembali bulat penuh rounded-full) -->
             <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
             </div>
@@ -256,13 +251,18 @@
         </div>
     </div>
 
-    <!-- Fullscreen Gallery Modal -->
-    <div id="gallery-modal" class="fixed inset-0 bg-black z-[100] hidden items-center justify-center cursor-pointer">
+    <!-- Fullscreen Gallery Modal dengan Shape Shift Logic -->
+    <div id="gallery-modal" class="fixed inset-0 z-[100] hidden items-center justify-center cursor-pointer touch-none bg-transparent">
         
-        <!-- Zoom Container -->
-        <div id="zoom-container" class="relative w-full h-full flex items-center justify-center origin-center">
-            <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
-            <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
+        <!-- Animasi Shape-Shift berjalan di div ini -->
+        <div id="gallery-anim-wrapper" class="absolute bg-black overflow-hidden flex items-center justify-center origin-center">
+            
+            <!-- Zoom Container -->
+            <div id="zoom-container" class="relative w-full h-full flex items-center justify-center origin-center">
+                <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
+                <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
+            </div>
+
         </div>
 
         <!-- Loading Dot Indicator -->
@@ -311,8 +311,11 @@
         const shutterBtn = document.getElementById('shutter-btn');
         const flashOverlay = document.getElementById('flash-overlay');
         const flashAutoText = document.getElementById('flash-auto-text');
+        
+        const galleryBtn = document.getElementById('gallery-btn');
         const galleryThumbnail = document.getElementById('gallery-thumbnail');
         const galleryModal = document.getElementById('gallery-modal');
+        const galleryAnimWrapper = document.getElementById('gallery-anim-wrapper');
         const zoomContainer = document.getElementById('zoom-container');
         const galleryOriginal = document.getElementById('gallery-original');
         const galleryGenerated = document.getElementById('gallery-generated');
@@ -449,7 +452,6 @@
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
             
-            // Trigger animations
             setTimeout(() => {
                 settingsModal.classList.remove('opacity-0');
                 settingsContainer.classList.remove('scale-95');
@@ -470,7 +472,6 @@
             localStorage.setItem('fade_delay', fadeDelaySec);
             localStorage.setItem('transition_type', transitionType);
 
-            // Animate out
             settingsModal.classList.add('opacity-0');
             settingsContainer.classList.remove('scale-100');
             settingsContainer.classList.add('scale-95');
@@ -551,7 +552,8 @@
             }
         });
 
-        document.getElementById('gallery-btn').addEventListener('click', () => {
+        // Event Listener untuk BUKA Gallery Animasi "Shape Shift"
+        galleryBtn.addEventListener('click', () => {
             if (!originalImageData) return;
             
             stopCamera();
@@ -574,8 +576,33 @@
 
             resetZoom();
 
+            // 1. Tampilkan modal secara transparan dulu
             galleryModal.classList.remove('hidden');
-            galleryModal.classList.add('flex', 'fade-in');
+            galleryModal.classList.add('flex');
+            
+            // 2. Set posisi awal wrapper sama persis dengan tombol gallery
+            const btnRect = galleryBtn.getBoundingClientRect();
+            galleryAnimWrapper.style.transition = 'none';
+            galleryAnimWrapper.style.left = `${btnRect.left}px`;
+            galleryAnimWrapper.style.top = `${btnRect.top}px`;
+            galleryAnimWrapper.style.width = `${btnRect.width}px`;
+            galleryAnimWrapper.style.height = `${btnRect.height}px`;
+            galleryAnimWrapper.style.borderRadius = '50%';
+            galleryModal.style.backgroundColor = 'transparent';
+
+            // 3. Paksa reflow supaya posisi awal terbaca browser
+            void galleryAnimWrapper.offsetWidth;
+
+            // 4. Jalankan animasi berubah jadi fullscreen
+            galleryAnimWrapper.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            galleryModal.style.transition = 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            galleryAnimWrapper.style.left = '0px';
+            galleryAnimWrapper.style.top = '0px';
+            galleryAnimWrapper.style.width = '100%';
+            galleryAnimWrapper.style.height = '100%';
+            galleryAnimWrapper.style.borderRadius = '0px';
+            galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
         // --- Logic Zoom & Tap pada Gallery ---
@@ -689,12 +716,27 @@
         galleryModal.addEventListener('pointerleave', handlePointerUp);
 
 
-        // --- Gallery State & Transition Control ---
+        // --- Gallery State & Transition Control (TUTUP GALLERY ANIMASI) ---
         function closeGallery() {
-            galleryModal.classList.add('hidden');
-            galleryModal.classList.remove('flex', 'fade-in');
+            // Animasi reverse: kembali ke tombol gallery
+            const btnRect = galleryBtn.getBoundingClientRect();
+            
+            galleryAnimWrapper.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            galleryModal.style.transition = 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            galleryAnimWrapper.style.left = `${btnRect.left}px`;
+            galleryAnimWrapper.style.top = `${btnRect.top}px`;
+            galleryAnimWrapper.style.width = `${btnRect.width}px`;
+            galleryAnimWrapper.style.height = `${btnRect.height}px`;
+            galleryAnimWrapper.style.borderRadius = '50%';
+            galleryModal.style.backgroundColor = 'transparent';
             previewLoadingDot.classList.add('opacity-0');
-            initCamera();
+
+            setTimeout(() => {
+                galleryModal.classList.add('hidden');
+                galleryModal.classList.remove('flex');
+                initCamera();
+            }, 400); // Tunggu sampai animasi transition selesai
         }
 
         function handleGalleryTap() {
