@@ -265,8 +265,8 @@
 
         </div>
 
-        <!-- Loading Dot Indicator -->
-        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1.5 h-1.5 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none animate-pulse"></div>
+        <!-- Loading Dot Indicator (TANPA ANIMASI PULSE) -->
+        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1.5 h-1.5 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -605,13 +605,13 @@
         let scale = 1;
         let startScale = 1; 
         let posX = 0, posY = 0;
-        let swipeDeltaY = 0; // Tambahan untuk efek visual pas swipe ke bawah
+        let swipeDeltaY = 0; 
         let startDistance = 0;
         let startPanX = 0, startPanY = 0;
         let isPointerDown = false;
         let pointerStart = {x: 0, y: 0};
         let pointers = [];
-        let maxPointers = 0; // Lacak maksimal jari di layar untuk pisahin swipe 1 jari vs zoom out
+        let maxPointers = 0; 
 
         function updateZoomTransform() {
             if (scale === 1 && swipeDeltaY === 0) { posX = 0; posY = 0; }
@@ -660,10 +660,9 @@
                 
                 if (startDistance > 0) {
                     const zoomDelta = currentDistance / startDistance;
-                    // Clamp scale min 1
                     scale = Math.max(1, startScale * zoomDelta);
                     scale = Math.min(scale, 5); 
-                    swipeDeltaY = 0; // Batalin swipe visual kalo lagi nge-zoom
+                    swipeDeltaY = 0; 
                     updateZoomTransform();
                 }
             } else if (pointers.length === 1 && isPointerDown) {
@@ -679,15 +678,12 @@
 
                     updateZoomTransform();
                 } else if (maxPointers === 1 && scale === 1) {
-                    // Logic efek visual saat Swipe Down (1 Jari)
                     const deltaY = e.clientY - pointerStart.y;
                     const absDeltaX = Math.abs(e.clientX - pointerStart.x);
                     
-                    // Pastikan arah dominan ke bawah
                     if (deltaY > 0 && deltaY > absDeltaX) {
-                        swipeDeltaY = deltaY * 0.4; // Kasih efek resistensi (gak bergerak secepat jari)
+                        swipeDeltaY = deltaY * 0.4; 
                         updateZoomTransform();
-                        // Redupin background dikit pas ditarik
                         galleryModal.style.backgroundColor = `rgba(0,0,0,${Math.max(0.4, 1 - (deltaY / 400))})`;
                     } else {
                         swipeDeltaY = 0;
@@ -716,17 +712,14 @@
                     const deltaY = e.clientY - pointerStart.y;
                     const absDeltaX = Math.abs(e.clientX - pointerStart.x);
                     
-                    // Kalo swipe ke bawahnya udah cukup jauh (>80px), baru tutup!
                     if (deltaY > 80 && deltaY > absDeltaX * 1.5) {
                         swipeDeltaY = 0;
                         closeGallery();
                     } else {
-                        // Kalo gak cukup jauh (cuma tap atau geser dikit), batalin efek swipe down
                         swipeDeltaY = 0;
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
                         
-                        // Deteksi Tap Asli (hampir ga ada pergerakan jari)
                         if (Math.abs(deltaY) < 10 && absDeltaX < 10) {
                             handleGalleryTap();
                         }
@@ -736,12 +729,11 @@
                     updateZoomTransform();
                 }
 
-                // Reset zoom kalo zoom out ke bawah batas
                 if (scale <= 1.05) {
                     resetZoom();
                 }
                 
-                maxPointers = 0; // Reset state gesture untuk sesi touch berikutnya
+                maxPointers = 0; 
             }
         };
 
@@ -796,17 +788,14 @@
                         }
                     }, fadeDelaySec * 1000);
                 }
-                // Kalau AI belum ready, diem aja (Gak panggil closeGallery lagi)
                 
             } else if (previewState === 'FADING') {
-                // SKIP ANIMASI JADI INSTAN
                 previewState = 'AI';
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
                 galleryThumbnail.src = generatedImageData;
                 
             } 
-            // Kalau udah di state 'AI', tap gak ngapa-ngapain. Tutup harus swipe ke bawah!
         }
 
         window.addEventListener('load', initCamera);
