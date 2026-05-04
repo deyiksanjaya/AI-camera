@@ -136,7 +136,7 @@
         <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
             
-            <!-- Gallery -->
+            <!-- Gallery (Tombol bulat penuh) -->
             <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
             </div>
@@ -345,14 +345,14 @@
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
-        // Load State (FIXED BUG: Parsing delay agar nilai 0 tetap terbaca)
+        // Load State
         let userApiKey = localStorage.getItem('gemini_api_key') || "";
         let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades with mainstream card design";
         
         let storedDelay = localStorage.getItem('fade_delay');
         let fadeDelaySec = storedDelay !== null ? parseFloat(storedDelay) : 2;
-        if (isNaN(fadeDelaySec)) fadeDelaySec = 2; // Safeguard if NaN
+        if (isNaN(fadeDelaySec)) fadeDelaySec = 2;
 
         let transitionType = localStorage.getItem('transition_type') || "fade";
         let savedPrompts = JSON.parse(localStorage.getItem('saved_prompts') || '[]');
@@ -468,7 +468,6 @@
             aiModel = settingAiModel.value.trim() || "gemini-3.1-flash-image-preview";
             aiPromptStr = settingPrompt.value;
             
-            // FIXED BUG: Pastikan parsing value dari input tidak membuang nilai 0
             let parsedDelay = parseFloat(settingDelay.value);
             fadeDelaySec = isNaN(parsedDelay) ? 2 : Math.max(0, parsedDelay);
             
@@ -716,10 +715,15 @@
             if (pointers.length === 0) {
                 isPointerDown = false;
                 
+                const deltaY = e.clientY - pointerStart.y;
+                const deltaX = e.clientX - pointerStart.x;
+                const absDeltaY = Math.abs(deltaY);
+                const absDeltaX = Math.abs(deltaX);
+                
+                // Deteksi murni TAP: pergerakan jari sangat minim
+                const isTapGesture = absDeltaY < 10 && absDeltaX < 10;
+
                 if (maxPointers === 1 && scale === 1) {
-                    const deltaY = e.clientY - pointerStart.y;
-                    const absDeltaX = Math.abs(e.clientX - pointerStart.x);
-                    
                     if (deltaY > 80 && deltaY > absDeltaX * 1.5) {
                         swipeDeltaY = 0;
                         closeGallery();
@@ -728,9 +732,14 @@
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
                         
-                        if (Math.abs(deltaY) < 10 && absDeltaX < 10) {
+                        if (isTapGesture) {
                             handleGalleryTap();
                         }
+                    }
+                } else if (maxPointers === 1 && scale > 1) {
+                    // JIKA LAGI ZOOM IN & HANYA TAP, JALANKAN TRANSISI
+                    if (isTapGesture) {
+                        handleGalleryTap();
                     }
                 } else {
                     swipeDeltaY = 0;
@@ -775,10 +784,8 @@
             }, 400); 
         }
 
-        // --- Fungsi Handle Tap ---
+        // --- Fungsi Handle Tap (SUDAH BISA WALAUPUN DI-ZOOM) ---
         function handleGalleryTap() {
-            if (scale > 1) return; 
-
             if (previewState === 'ORIGINAL') {
                 if (isAiReady) {
                     previewState = 'FADING';
