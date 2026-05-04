@@ -7,10 +7,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>AI Magic Camera</title>
-    
-    <!-- KUNCI UNTUK IOS HOMESCREEN ICON -->
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/deyiksanjaya/AI-camera/refs/heads/main/icon-512.png">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -39,10 +35,9 @@
             from { opacity: 0; transform: scale(0.98); }
             to { opacity: 1; transform: scale(1); }
         }
-        #gallery-original { transition: opacity 1.5s ease-in-out; }
         
         /* Input fix for mobile */
-        input, textarea {
+        input, textarea, select {
             font-size: 16px !important;
             user-select: text !important;
             -webkit-user-select: text !important;
@@ -53,15 +48,28 @@
             width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05); 
-            border-radius: 4px;
+            background: transparent; 
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2); 
+            background: rgba(255, 255, 255, 0.15); 
             border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.4); 
+            background: rgba(255, 255, 255, 0.3); 
+        }
+
+        /* Prevent default touch actions on gallery for custom zoom */
+        #gallery-modal {
+            touch-action: none;
+        }
+        
+        /* Custom Select Arrow */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem !important;
         }
     </style>
 </head>
@@ -69,17 +77,19 @@
 
     <!-- Video Stream Fullscreen -->
     <video id="camera-stream" autoplay playsinline muted class="fixed inset-0 w-full h-full object-cover z-0"></video>
-    <div id="flash-overlay" class="fixed inset-0 bg-white z-20 opacity-0 pointer-events-none"></div>
+    
+    <!-- Flash Overlay -->
+    <div id="flash-overlay" class="fixed inset-0 bg-black z-20 opacity-0 pointer-events-none"></div>
 
     <!-- Notification Banner -->
     <div id="notification-banner" class="fixed top-[-100px] left-1/2 -translate-x-1/2 bg-[#1c1c1d]/90 text-white px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500 ease-out z-[150] pointer-events-none border border-white/10 w-max max-w-[90%]">
-        <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Memproses...</span>
+        <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Processing...</span>
     </div>
 
     <!-- Top Solid Translucent Background -->
     <div class="fixed top-0 left-0 w-full h-[75px] bg-black/60 pointer-events-none z-0"></div>
 
-    <!-- Top Right Controls (Pill diturunkan ke bawah latar transparan) -->
+    <!-- Top Right Controls -->
     <div class="fixed top-[80px] right-4 bg-black/50 rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10">
         <!-- Moon -->
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -103,50 +113,50 @@
     <!-- Bottom Controls Container -->
     <div class="fixed bottom-0 left-0 w-full z-10 flex flex-col pointer-events-none">
         
-        <!-- Floating Elements Area (Zoom & Shutter over the camera stream) -->
+        <!-- Floating Elements Area -->
         <div class="w-full flex flex-col items-center pb-4">
             
             <!-- Zoom Controls -->
             <div class="flex items-center justify-center gap-5 mb-5 pointer-events-auto">
-                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer">0,5</span>
+                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">0.5</span>
                 
-                <div class="w-9 h-9 bg-[#1c1c1d]/60 rounded-full flex items-center justify-center border border-white/10 cursor-pointer shadow-lg">
+                <div class="w-9 h-9 bg-[#1c1c1d]/80 rounded-full flex items-center justify-center border border-white/10 cursor-pointer shadow-lg backdrop-blur-md">
                     <span class="text-[#ffd60a] text-[13px] font-semibold">1x</span>
                 </div>
                 
-                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer">2</span>
-                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer">4</span>
-                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer">8</span>
+                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">2</span>
+                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">4</span>
+                <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">8</span>
             </div>
 
             <!-- Shutter Button -->
             <div class="flex justify-center pointer-events-auto">
                 <div id="shutter-btn" class="w-[70px] h-[70px] rounded-full border-[3px] border-white/90 flex items-center justify-center cursor-pointer active:scale-95 transition-transform bg-transparent">
-                    <div class="w-[56px] h-[56px] bg-white rounded-full"></div>
+                    <div class="w-[56px] h-[56px] bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"></div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Black Translucent Bottom Bar (No Blur) -->
+        <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
             
             <!-- Gallery -->
-            <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:opacity-70 transition-opacity flex-shrink-0 border border-white/20 bg-zinc-800">
+            <div id="gallery-btn" class="w-11 h-11 rounded-xl overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
             </div>
             
             <!-- Modes -->
             <div class="flex items-center gap-6">
-                <span class="text-white/90 text-[13px] font-semibold tracking-wider cursor-pointer drop-shadow-md">VIDEO</span>
+                <span class="text-white/70 text-[13px] font-semibold tracking-wider cursor-pointer drop-shadow-md hover:text-white transition-colors">VIDEO</span>
                 
-                <div class="bg-black/40 rounded-full px-4 py-1.5 border border-white/10 cursor-pointer flex items-center justify-center shadow-inner" onclick="openSettings()">
+                <div class="bg-black/50 rounded-full px-5 py-2 border border-white/10 cursor-pointer flex items-center justify-center shadow-inner" onclick="openSettings()">
                     <span class="text-[#ffd60a] text-[13px] font-semibold tracking-wider">PHOTO</span>
                 </div>
             </div>
             
             <!-- Flip Camera -->
-            <div class="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-white cursor-pointer active:bg-white/20 transition-colors" onclick="toggleCamera()">
+            <div class="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-white cursor-pointer active:bg-white/20 active:scale-95 transition-all" onclick="toggleCamera()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="17 1 21 5 17 9"></polyline>
                     <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
@@ -160,14 +170,20 @@
     </div>
 
     <!-- AI Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-4">
-        <div class="bg-[#1c1c1d] w-full max-w-[90%] max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 pointer-events-auto overflow-hidden">
+    <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] max-h-[85vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 pointer-events-auto overflow-hidden transform scale-95 transition-transform duration-300" id="settings-container">
             
             <!-- Modal Header -->
-            <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center shrink-0">
-                <h2 class="text-lg font-semibold text-[#ffd60a]">AI Magic Settings</h2>
-                <button onclick="closeSettings()" class="text-gray-400 hover:text-white transition-colors p-2">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
+                <h2 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12c-2.75 0-5.25-2.5-6-5-1 4-4 6-7 6 3 0 6 2 7 6 .75-2.5 3.25-5 6-5z"></path>
+                        <path d="M14 4c-1 0-2-1-2.5-2-.5 1-1.5 2-2.5 2 1 0 2 1 2.5 2 .5-1 1.5-2 2.5-2z"></path>
+                    </svg>
+                    Settings
+                </h2>
+                <button onclick="closeSettings()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -175,55 +191,82 @@
             </div>
             
             <!-- Modal Body (Scrollable) -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
-                <div class="mb-5">
-                    <label class="block text-sm text-gray-400 mb-1.5 font-medium">API Key Gemini (AI Studio):</label>
-                    <input type="password" id="setting-api-key" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] transition-colors" placeholder="AIzaSy...">
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-7">
+                
+                <!-- Section: Configuration -->
+                <div class="space-y-4">
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Configuration</h3>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">Gemini API Key</label>
+                        <input type="password" id="setting-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">AI Model</label>
+                        <input type="text" id="setting-ai-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                    </div>
                 </div>
 
-                <div class="mb-5">
-                    <label class="block text-sm text-gray-400 mb-1.5 font-medium">Model Gemini:</label>
-                    <input type="text" id="setting-ai-model" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] transition-colors" placeholder="gemini-3.1-flash-image-preview">
+                <!-- Section: Transition -->
+                <div class="space-y-4 pt-5 border-t border-white/5">
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Transition</h3>
+                    
+                    <div class="flex gap-4">
+                        <div class="flex-[3]">
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Effect</label>
+                            <select id="setting-transition" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
+                                <option value="fade">Fade</option>
+                                <option value="none">Instant</option>
+                            </select>
+                        </div>
+                        <div class="flex-[2]">
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Delay (sec)</label>
+                            <input type="number" id="setting-delay" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="0" step="0.5">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm text-gray-400 mb-1.5 font-medium">Delay transisi fade (detik):</label>
-                    <input type="number" id="setting-delay" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] transition-colors" min="0" step="0.5">
-                </div>
-
-                <!-- Prompt Manager Section -->
-                <div class="border-t border-white/10 pt-5 mt-2">
-                    <div class="flex justify-between items-center mb-3">
-                        <label class="block text-sm text-[#ffd60a] font-medium">Prompt Rahasia (Aktif):</label>
+                <!-- Section: Prompts -->
+                <div class="space-y-4 pt-5 border-t border-white/5">
+                    <div class="flex justify-between items-center pl-1">
+                        <h3 class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest">AI Prompt</h3>
                     </div>
                     
-                    <textarea id="setting-prompt" class="w-full bg-black/50 border border-white/20 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] resize-none h-24 mb-3 transition-colors placeholder-gray-600" placeholder="Ketik prompt baru di sini..."></textarea>
+                    <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed" placeholder="Type your magic prompt here..."></textarea>
                     
-                    <button onclick="saveCurrentPrompt()" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl py-2.5 mb-5 active:scale-[0.98] transition-all text-sm border border-white/10">
-                        + Simpan ke Draft
+                    <button onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        Save as Draft
                     </button>
 
-                    <label class="block text-sm text-gray-400 mb-2 font-medium">Draft Prompt Tersimpan:</label>
-                    <div id="prompt-list" class="flex flex-col gap-2 max-h-40 overflow-y-auto custom-scrollbar pr-1">
-                        <!-- List draft prompt akan di-render di sini via JS -->
+                    <div class="pt-2">
+                        <label class="block text-sm text-gray-400 mb-3 font-medium pl-1">Saved Prompts</label>
+                        <div id="prompt-list" class="flex flex-col gap-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                            <!-- List draft prompt rendered here -->
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Modal Footer -->
-            <div class="p-6 border-t border-white/10 shrink-0">
-                <button onclick="closeSettings()" class="w-full bg-[#ffd60a] text-black font-bold rounded-xl py-3.5 active:scale-[0.98] transition-transform touch-manipulation shadow-lg">Simpan & Tutup</button>
+            <div class="p-6 border-t border-white/5 shrink-0 bg-black/20">
+                <button onclick="closeSettings()" class="w-full bg-[#ffd60a] hover:bg-[#e6c100] text-black font-bold rounded-xl py-3.5 active:scale-[0.98] transition-all touch-manipulation shadow-[0_4px_15px_rgba(255,214,10,0.3)]">Save & Close</button>
             </div>
         </div>
     </div>
 
     <!-- Fullscreen Gallery Modal -->
     <div id="gallery-modal" class="fixed inset-0 bg-black z-[100] hidden items-center justify-center cursor-pointer">
-        <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10" alt="Generated">
-        <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20" alt="Original">
         
-        <!-- Loading Dot Indicator di Pojok Kiri Bawah (Diperkecil & Warna Abu) -->
-        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1 h-1 bg-gray-400 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        <!-- Zoom Container -->
+        <div id="zoom-container" class="relative w-full h-full flex items-center justify-center origin-center">
+            <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
+            <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
+        </div>
+
+        <!-- Loading Dot Indicator -->
+        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1.5 h-1.5 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none animate-pulse"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -231,22 +274,17 @@
     <script>
         // --- PWA Initialization ---
         function initPWA() {
-            // Encode manifest menggunakan direct link untuk icon
             const manifestContent = {
                 name: "AI Magic Camera", short_name: "AICam", start_url: ".", display: "standalone",
                 background_color: "#000000", theme_color: "#000000",
-                icons: [{ src: "https://raw.githubusercontent.com/deyiksanjaya/AI-camera/refs/heads/main/icon-512.png", sizes: "512x512", type: "image/png" }]
+                icons: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
             };
-            
-            const base64Manifest = btoa(JSON.stringify(manifestContent));
-            
-            const link = document.createElement('link'); 
-            link.rel = 'manifest'; 
-            link.href = 'data:application/manifest+json;base64,' + base64Manifest;
+
+            const manifestBlob = new Blob([JSON.stringify(manifestContent)], {type: 'application/json'});
+            const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(manifestBlob);
             document.head.appendChild(link);
 
             if ('serviceWorker' in navigator) {
-                // Network First Strategy
                 const swCode = `
                 const CACHE_NAME = 'ai-magic-cam-v1';
                 self.addEventListener('install', e => self.skipWaiting());
@@ -254,13 +292,11 @@
                 self.addEventListener('fetch', e => {
                     if (e.request.method !== 'GET') return;
                     e.respondWith(
-                        fetch(e.request)
-                        .then(res => {
+                        fetch(e.request).then(res => {
                             const resClone = res.clone();
                             caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
                             return res;
-                        })
-                        .catch(() => caches.match(e.request))
+                        }).catch(() => caches.match(e.request))
                     );
                 });
                 `;
@@ -277,16 +313,19 @@
         const flashAutoText = document.getElementById('flash-auto-text');
         const galleryThumbnail = document.getElementById('gallery-thumbnail');
         const galleryModal = document.getElementById('gallery-modal');
+        const zoomContainer = document.getElementById('zoom-container');
         const galleryOriginal = document.getElementById('gallery-original');
         const galleryGenerated = document.getElementById('gallery-generated');
         const previewLoadingDot = document.getElementById('preview-loading-dot');
         
         // Settings Elements
         const settingsModal = document.getElementById('settings-modal');
+        const settingsContainer = document.getElementById('settings-container');
         const settingApiKey = document.getElementById('setting-api-key');
         const settingAiModel = document.getElementById('setting-ai-model');
         const settingPrompt = document.getElementById('setting-prompt');
         const settingDelay = document.getElementById('setting-delay');
+        const settingTransition = document.getElementById('setting-transition');
         const promptListContainer = document.getElementById('prompt-list');
         
         const canvas = document.getElementById('photo-canvas');
@@ -308,6 +347,7 @@
         let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades with mainstream card design";
         let fadeDelaySec = parseFloat(localStorage.getItem('fade_delay')) || 2;
+        let transitionType = localStorage.getItem('transition_type') || "fade";
         let savedPrompts = JSON.parse(localStorage.getItem('saved_prompts') || '[]');
 
         // Initialize Settings Modal Values
@@ -315,6 +355,7 @@
         settingAiModel.value = aiModel;
         settingPrompt.value = aiPromptStr;
         settingDelay.value = fadeDelaySec;
+        settingTransition.value = transitionType;
 
         // --- Camera Functions ---
         async function initCamera() {
@@ -330,7 +371,7 @@
                 currentStream = stream;
                 videoElement.play();
             } catch (err) {
-                console.error("Kamera Error:", err);
+                console.error("Camera Error:", err);
             }
         }
 
@@ -351,26 +392,26 @@
         // --- Settings & Prompt Manager Functions ---
         function renderPromptList() {
             promptListContainer.innerHTML = '';
-            
             if (savedPrompts.length === 0) {
-                promptListContainer.innerHTML = '<div class="text-xs text-gray-500 italic p-2 text-center">Belum ada draft tersimpan.</div>';
+                promptListContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span class="text-xs text-gray-500 font-medium">No saved prompts yet</span>
+                    </div>`;
                 return;
             }
 
             savedPrompts.forEach((prompt, index) => {
                 const item = document.createElement('div');
-                item.className = 'flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2.5 hover:bg-black/60 transition-colors group';
+                item.className = 'flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 hover:bg-black/60 transition-colors group';
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = 'text-xs text-gray-300 truncate pr-2 cursor-pointer flex-1';
+                textSpan.className = 'text-xs text-gray-300 truncate pr-3 cursor-pointer flex-1 leading-relaxed';
                 textSpan.textContent = prompt;
-                textSpan.title = prompt;
-                textSpan.onclick = () => {
-                    settingPrompt.value = prompt;
-                };
+                textSpan.onclick = () => { settingPrompt.value = prompt; };
 
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1 rounded transition-colors';
+                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-all';
                 deleteBtn.innerHTML = `
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -391,7 +432,7 @@
         function saveCurrentPrompt() {
             const currentVal = settingPrompt.value.trim();
             if (currentVal && !savedPrompts.includes(currentVal)) {
-                savedPrompts.unshift(currentVal); // Add to beginning
+                savedPrompts.unshift(currentVal);
                 localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
                 renderPromptList();
             }
@@ -407,6 +448,13 @@
             renderPromptList();
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
+            
+            // Trigger animations
+            setTimeout(() => {
+                settingsModal.classList.remove('opacity-0');
+                settingsContainer.classList.remove('scale-95');
+                settingsContainer.classList.add('scale-100');
+            }, 10);
         }
 
         function closeSettings() {
@@ -414,14 +462,23 @@
             aiModel = settingAiModel.value.trim() || "gemini-3.1-flash-image-preview";
             aiPromptStr = settingPrompt.value;
             fadeDelaySec = parseFloat(settingDelay.value) || 2;
+            transitionType = settingTransition.value;
 
             localStorage.setItem('gemini_api_key', userApiKey);
             localStorage.setItem('ai_model', aiModel);
             localStorage.setItem('ai_prompt', aiPromptStr);
             localStorage.setItem('fade_delay', fadeDelaySec);
+            localStorage.setItem('transition_type', transitionType);
 
-            settingsModal.classList.remove('flex');
-            settingsModal.classList.add('hidden');
+            // Animate out
+            settingsModal.classList.add('opacity-0');
+            settingsContainer.classList.remove('scale-100');
+            settingsContainer.classList.add('scale-95');
+            
+            setTimeout(() => {
+                settingsModal.classList.remove('flex');
+                settingsModal.classList.add('hidden');
+            }, 300);
         }
 
         // --- AI Generation ---
@@ -429,10 +486,7 @@
             if (!userApiKey) return;
             isAiReady = false;
             
-            // Tampilkan indikator 'A' saat proses AI dimulai
             flashAutoText.classList.remove('opacity-0');
-            
-            // Jika sedang buka galeri saat generate berjalan, perlihatkan dot abu-abunya
             if (!galleryModal.classList.contains('hidden')) {
                 previewLoadingDot.classList.remove('opacity-0');
             }
@@ -448,7 +502,7 @@
                     })
                 });
                 
-                if (!response.ok) throw new Error("API Gagal");
+                if (!response.ok) throw new Error("API Failed");
 
                 const result = await response.json();
                 const imgBase = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
@@ -457,11 +511,8 @@
                     generatedImageData = `data:image/png;base64,${imgBase}`;
                     isAiReady = true;
                     
-                    // Sembunyikan indikator setelah selesai
                     flashAutoText.classList.add('opacity-0');
                     previewLoadingDot.classList.add('opacity-0');
-                    
-                    // Update image base di galeri (berguna jika galeri sedang terbuka saat itu juga)
                     galleryGenerated.src = generatedImageData;
                 }
             } catch (error) {
@@ -471,7 +522,7 @@
             }
         }
 
-        // --- Event Listeners ---
+        // --- Event Listeners: Shutter & Gallery Button ---
         shutterBtn.addEventListener('click', () => {
             if (videoElement.readyState >= 2) {
                 flashOverlay.classList.remove('shutter-flash');
@@ -491,10 +542,9 @@
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
                 galleryThumbnail.src = originalImageData;
                 
-                // Reset state untuk foto baru
                 previewState = 'ORIGINAL';
+                galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '1';
-                galleryOriginal.style.pointerEvents = 'auto'; // Agar bisa di-tap
                 
                 flashAutoText.classList.remove('opacity-0');
                 generateAiImage(originalImageData.split(',')[1]);
@@ -504,72 +554,178 @@
         document.getElementById('gallery-btn').addEventListener('click', () => {
             if (!originalImageData) return;
             
-            // Matikan kamera agar hemat baterai/proses
             stopCamera();
-
             galleryOriginal.src = originalImageData;
             galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
             
-            // Atur tampilan berdasarkan state (apakah sudah pernah memudar/fade ke AI sebelumnya)
             if (previewState === 'AI') {
+                galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
-                galleryOriginal.style.pointerEvents = 'none'; // Biarkan user "Save Image" AI dengan menahan layar
             } else {
+                galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '1';
-                galleryOriginal.style.pointerEvents = 'auto';
             }
             
-            // Atur dot loading abu-abu
             if (!isAiReady && previewState !== 'AI') {
                 previewLoadingDot.classList.remove('opacity-0');
             } else {
                 previewLoadingDot.classList.add('opacity-0');
             }
 
+            resetZoom();
+
             galleryModal.classList.remove('hidden');
             galleryModal.classList.add('flex', 'fade-in');
         });
 
-        galleryModal.addEventListener('click', () => {
+        // --- Logic Zoom & Tap pada Gallery ---
+        let scale = 1;
+        let startScale = 1; 
+        let posX = 0, posY = 0;
+        let startDistance = 0;
+        let startPanX = 0, startPanY = 0;
+        let isPointerDown = false;
+        let pointerStart = {x: 0, y: 0};
+        let pointers = [];
+        let isTap = true;
+
+        function updateZoomTransform() {
+            if (scale === 1) { posX = 0; posY = 0; }
+            zoomContainer.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+        }
+
+        function resetZoom() {
+            scale = 1; startScale = 1; 
+            posX = 0; posY = 0;
+            updateZoomTransform();
+        }
+
+        galleryModal.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); 
+            pointers.push(e);
+
+            if (pointers.length === 1) {
+                isPointerDown = true;
+                pointerStart = {x: e.clientX, y: e.clientY};
+                isTap = true; 
+                if (scale > 1) {
+                    startPanX = e.clientX - posX;
+                    startPanY = e.clientY - posY;
+                }
+            } else if (pointers.length === 2) {
+                isTap = false;
+                startDistance = Math.hypot(
+                    pointers[0].clientX - pointers[1].clientX,
+                    pointers[0].clientY - pointers[1].clientY
+                );
+                startScale = scale; 
+            }
+        });
+
+        galleryModal.addEventListener('pointermove', (e) => {
+            const index = pointers.findIndex(p => p.pointerId === e.pointerId);
+            if (index !== -1) pointers[index] = e;
+
+            if (pointers.length === 2) {
+                isTap = false;
+                const currentDistance = Math.hypot(
+                    pointers[0].clientX - pointers[1].clientX,
+                    pointers[0].clientY - pointers[1].clientY
+                );
+                
+                if (startDistance > 0) {
+                    const zoomDelta = currentDistance / startDistance;
+                    scale = Math.min(Math.max(1, startScale * zoomDelta), 5);
+                    updateZoomTransform();
+                }
+            } else if (pointers.length === 1 && isPointerDown) {
+                const dist = Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y);
+                if (dist > 10) isTap = false;
+
+                if (scale > 1 && !isTap) {
+                    let newPosX = e.clientX - startPanX;
+                    let newPosY = e.clientY - startPanY;
+
+                    const maxPosX = (window.innerWidth * scale) / 2;
+                    const maxPosY = (window.innerHeight * scale) / 2;
+
+                    posX = Math.max(-maxPosX, Math.min(maxPosX, newPosX));
+                    posY = Math.max(-maxPosY, Math.min(maxPosY, newPosY));
+
+                    updateZoomTransform();
+                }
+            }
+        });
+
+        const handlePointerUp = (e) => {
+            const index = pointers.findIndex(p => p.pointerId === e.pointerId);
+            if (index !== -1) pointers.splice(index, 1);
+
+            if (pointers.length < 2) {
+                startDistance = 0;
+                if (pointers.length === 1 && scale > 1) {
+                    startPanX = pointers[0].clientX - posX;
+                    startPanY = pointers[0].clientY - posY;
+                }
+            }
+            
+            if (pointers.length === 0) {
+                isPointerDown = false;
+                
+                if (scale <= 1.05) {
+                    resetZoom();
+                }
+
+                if (isTap && scale === 1) {
+                    handleGalleryTap();
+                }
+                
+                isTap = true;
+            }
+        };
+
+        galleryModal.addEventListener('pointerup', handlePointerUp);
+        galleryModal.addEventListener('pointercancel', handlePointerUp);
+        galleryModal.addEventListener('pointerleave', handlePointerUp);
+
+
+        // --- Gallery State & Transition Control ---
+        function closeGallery() {
+            galleryModal.classList.add('hidden');
+            galleryModal.classList.remove('flex', 'fade-in');
+            previewLoadingDot.classList.add('opacity-0');
+            initCamera();
+        }
+
+        function handleGalleryTap() {
+            if (scale > 1) return; 
+
             if (previewState === 'ORIGINAL' && isAiReady) {
-                // Proses memudar / transisi "ajaib"
                 previewState = 'FADING';
                 setTimeout(() => {
-                    // Cek lagi untuk menghindari bug user double click
                     if (previewState === 'FADING') {
+                        galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
                         galleryOriginal.style.opacity = '0';
+                        
                         setTimeout(() => {
                             if (previewState === 'FADING' || previewState === 'AI') {
                                 previewState = 'AI';
-                                galleryOriginal.style.pointerEvents = 'none'; // Memastikan gambar asli tidak menghalangi menu Save
-                                galleryThumbnail.src = generatedImageData;    // Thumbnail berubah jadi AI permanen
+                                galleryThumbnail.src = generatedImageData;
                             }
-                        }, 1500); // 1.5s sesuai animasi di CSS
+                        }, transitionType === 'fade' ? 1500 : 50);
                     }
                 }, fadeDelaySec * 1000);
 
             } else if (previewState === 'AI' || (previewState === 'ORIGINAL' && !isAiReady)) {
-                // Tutup galeri jika gambar AI sudah ada, atau jika gambar belum selesai diproses
-                galleryModal.classList.add('hidden');
-                galleryModal.classList.remove('flex', 'fade-in');
-                previewLoadingDot.classList.add('opacity-0');
-                
-                // Nyalakan ulang kamera
-                initCamera();
-                
+                closeGallery();
             } else if (previewState === 'FADING') {
-                // Jika user tap layar BERSAMAAN saat efek memudar sedang jalan, paksa ke akhir proses
                 previewState = 'AI';
+                galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
-                galleryOriginal.style.pointerEvents = 'none';
                 galleryThumbnail.src = generatedImageData;
-                
-                galleryModal.classList.add('hidden');
-                galleryModal.classList.remove('flex', 'fade-in');
-                previewLoadingDot.classList.add('opacity-0');
-                initCamera();
+                closeGallery();
             }
-        });
+        }
 
         window.addEventListener('load', initCamera);
     </script>
