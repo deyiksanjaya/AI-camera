@@ -136,7 +136,7 @@
         <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
             
-            <!-- Gallery (Tombol bulat penuh) -->
+            <!-- Gallery -->
             <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
             </div>
@@ -356,7 +356,7 @@
         // Load State
         let userApiKey = localStorage.getItem('gemini_api_key') || "";
         let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
-        let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades with mainstream card design";
+        let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades";
         
         let storedDelay = localStorage.getItem('fade_delay');
         let fadeDelaySec = storedDelay !== null ? parseFloat(storedDelay) : 2;
@@ -476,7 +476,7 @@
         function closeSettings() {
             userApiKey = settingApiKey.value.trim();
             aiModel = settingAiModel.value.trim() || "gemini-3.1-flash-image-preview";
-            aiPromptStr = settingPrompt.value;
+            aiPromptStr = settingPrompt.value.trim() || "change this card to two of spades";
             triggerMethod = settingTrigger.value;
             
             let parsedDelay = parseFloat(settingDelay.value);
@@ -511,13 +511,17 @@
                 previewLoadingDot.classList.remove('opacity-0');
             }
 
+            // Menyisipkan instruksi magic/photorealistic secara otomatis
+            const hiddenInstruction = ", photo realistic, keep other details exactly the same, use standard casino card for playing card";
+            const finalPrompt = aiPromptStr + hiddenInstruction;
+
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${userApiKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: aiPromptStr }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }],
+                        contents: [{ parts: [{ text: finalPrompt }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }],
                         generationConfig: { responseModalities: ["TEXT", "IMAGE"] } 
                     })
                 });
@@ -812,7 +816,7 @@
             }, 400); 
         }
 
-        // --- Fungsi Eksekusi Transisi (Dikeluarkan agar bisa dipakai Tap & Swipe Up) ---
+        // --- Fungsi Eksekusi Transisi ---
         function startTransition() {
             previewState = 'FADING';
             setTimeout(() => {
@@ -830,7 +834,7 @@
             }, fadeDelaySec * 1000);
         }
 
-        // --- Fungsi Handle Tap (Juga menangani percepat/skip animasi bila sedang fading) ---
+        // --- Fungsi Handle Tap ---
         function handleGalleryTap() {
             if (previewState === 'ORIGINAL') {
                 if (isAiReady && triggerMethod === 'tap') {
