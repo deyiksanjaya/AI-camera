@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -192,7 +192,7 @@
                 <div class="space-y-4">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Configuration</h3>
                     
-                    <!-- Added API Provider Selection -->
+                    <!-- API Provider Selection -->
                     <div>
                         <label class="block text-sm text-gray-300 mb-2 font-medium">API Provider</label>
                         <select id="setting-provider" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
@@ -201,14 +201,28 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">API Key</label>
-                        <input type="password" id="setting-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter API key...">
+                    <!-- Google Settings (Toggled) -->
+                    <div id="google-settings-block" class="space-y-4 pt-2">
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
+                            <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
+                            <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">AI Model</label>
-                        <input type="text" id="setting-ai-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="e.g. gemini-3.1-flash-image-preview">
+                    <!-- OpenRouter Settings (Toggled) -->
+                    <div id="openrouter-settings-block" class="space-y-4 pt-2 hidden">
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">OpenRouter API Key</label>
+                            <input type="password" id="setting-openrouter-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter OpenRouter key...">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">OpenRouter AI Model</label>
+                            <input type="text" id="setting-openrouter-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="google/gemini-2.5-flash">
+                        </div>
                     </div>
                 </div>
 
@@ -341,8 +355,15 @@
         const settingsModal = document.getElementById('settings-modal');
         const settingsContainer = document.getElementById('settings-container');
         const settingProvider = document.getElementById('setting-provider');
-        const settingApiKey = document.getElementById('setting-api-key');
-        const settingAiModel = document.getElementById('setting-ai-model');
+        
+        const googleSettingsBlock = document.getElementById('google-settings-block');
+        const openrouterSettingsBlock = document.getElementById('openrouter-settings-block');
+        
+        const settingGoogleApiKey = document.getElementById('setting-google-api-key');
+        const settingGoogleModel = document.getElementById('setting-google-model');
+        const settingOpenrouterApiKey = document.getElementById('setting-openrouter-api-key');
+        const settingOpenrouterModel = document.getElementById('setting-openrouter-model');
+        
         const settingPrompt = document.getElementById('setting-prompt');
         const settingDelay = document.getElementById('setting-delay');
         const settingTransition = document.getElementById('setting-transition');
@@ -363,10 +384,27 @@
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
-        // Load State
+        // --- Migrasi data lama (jika ada) ke memori Google API ---
+        let oldGeminiKey = localStorage.getItem('gemini_api_key');
+        if (oldGeminiKey && !localStorage.getItem('google_api_key')) {
+            localStorage.setItem('google_api_key', oldGeminiKey);
+            localStorage.removeItem('gemini_api_key'); // Hapus yang lama agar bersih
+        }
+        let oldGeminiModel = localStorage.getItem('ai_model');
+        if (oldGeminiModel && !localStorage.getItem('google_ai_model')) {
+            localStorage.setItem('google_ai_model', oldGeminiModel);
+            localStorage.removeItem('ai_model');
+        }
+
+        // --- Load State ---
         let apiProvider = localStorage.getItem('api_provider') || "google";
-        let userApiKey = localStorage.getItem('gemini_api_key') || "";
-        let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
+        
+        let googleApiKey = localStorage.getItem('google_api_key') || "";
+        let openrouterApiKey = localStorage.getItem('openrouter_api_key') || "";
+        
+        let googleAiModel = localStorage.getItem('google_ai_model') || "gemini-3.1-flash-image-preview";
+        let openrouterAiModel = localStorage.getItem('openrouter_ai_model') || "google/gemini-2.5-flash";
+        
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades";
         
         let storedDelay = localStorage.getItem('fade_delay');
@@ -379,21 +417,30 @@
 
         // Initialize Settings Modal Values
         settingProvider.value = apiProvider;
-        settingApiKey.value = userApiKey;
-        settingAiModel.value = aiModel;
+        settingGoogleApiKey.value = googleApiKey;
+        settingOpenrouterApiKey.value = openrouterApiKey;
+        settingGoogleModel.value = googleAiModel;
+        settingOpenrouterModel.value = openrouterAiModel;
+        
         settingPrompt.value = aiPromptStr;
         settingDelay.value = fadeDelaySec;
         settingTransition.value = transitionType;
         settingTrigger.value = triggerMethod;
 
-        // UI update for placeholder based on provider
-        settingProvider.addEventListener('change', () => {
-            if (settingProvider.value === 'openrouter') {
-                settingAiModel.placeholder = "e.g. google/gemini-2.5-flash";
+        // --- Update UI berdasarkan Provider ---
+        function updateProviderUI() {
+            if (settingProvider.value === 'google') {
+                googleSettingsBlock.classList.remove('hidden');
+                openrouterSettingsBlock.classList.add('hidden');
             } else {
-                settingAiModel.placeholder = "gemini-3.1-flash-image-preview";
+                googleSettingsBlock.classList.add('hidden');
+                openrouterSettingsBlock.classList.remove('hidden');
             }
-        });
+        }
+        
+        // Jalankan saat inisialisasi dan saat dropdown diubah
+        updateProviderUI();
+        settingProvider.addEventListener('change', updateProviderUI);
 
         // --- Camera Functions ---
         async function initCamera() {
@@ -434,7 +481,7 @@
                 promptListContainer.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        <span class="text-xs text-gray-500 font-medium">No saved prompts yet</span>
+                        <span class="text-xs text-gray-500 font-medium">Belum ada prompt tersimpan</span>
                     </div>`;
                 return;
             }
@@ -496,8 +543,13 @@
 
         function closeSettings() {
             apiProvider = settingProvider.value;
-            userApiKey = settingApiKey.value.trim();
-            aiModel = settingAiModel.value.trim() || (apiProvider === 'google' ? "gemini-3.1-flash-image-preview" : "google/gemini-2.5-flash");
+            
+            googleApiKey = settingGoogleApiKey.value.trim();
+            openrouterApiKey = settingOpenrouterApiKey.value.trim();
+            
+            googleAiModel = settingGoogleModel.value.trim() || "gemini-3.1-flash-image-preview";
+            openrouterAiModel = settingOpenrouterModel.value.trim() || "google/gemini-2.5-flash";
+            
             aiPromptStr = settingPrompt.value.trim() || "change this card to two of spades";
             triggerMethod = settingTrigger.value;
             
@@ -506,9 +558,13 @@
             
             transitionType = settingTransition.value;
 
+            // Simpan semua ke LocalStorage
             localStorage.setItem('api_provider', apiProvider);
-            localStorage.setItem('gemini_api_key', userApiKey);
-            localStorage.setItem('ai_model', aiModel);
+            localStorage.setItem('google_api_key', googleApiKey);
+            localStorage.setItem('openrouter_api_key', openrouterApiKey);
+            localStorage.setItem('google_ai_model', googleAiModel);
+            localStorage.setItem('openrouter_ai_model', openrouterAiModel);
+            
             localStorage.setItem('ai_prompt', aiPromptStr);
             localStorage.setItem('fade_delay', fadeDelaySec);
             localStorage.setItem('transition_type', transitionType);
@@ -526,7 +582,11 @@
 
         // --- AI Generation ---
         async function generateAiImage(base64Data) {
-            if (!userApiKey) return;
+            // Tentukan key dan model berdasarkan provider aktif
+            const activeKey = apiProvider === 'google' ? googleApiKey : openrouterApiKey;
+            const activeModel = apiProvider === 'google' ? googleAiModel : openrouterAiModel;
+
+            if (!activeKey) return;
             isAiReady = false;
             
             flashAutoText.classList.remove('opacity-0');
@@ -543,7 +603,7 @@
 
                 if (apiProvider === 'google') {
                     // Call Google AI Studio
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${userApiKey}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${activeKey}`;
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -568,12 +628,12 @@
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${userApiKey}`,
+                            'Authorization': `Bearer ${activeKey}`,
                             'HTTP-Referer': window.location.href, // Recommended by OpenRouter
                             'X-Title': 'AI Magic Camera' // Recommended by OpenRouter
                         },
                         body: JSON.stringify({
-                            model: aiModel,
+                            model: activeModel,
                             messages: [
                                 {
                                     role: "user",
