@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Camera</title>
+    <title>Lucid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -78,7 +78,10 @@
 
     <!-- Notification Banner -->
     <div id="notification-banner" class="fixed top-[-100px] left-1/2 -translate-x-1/2 bg-[#1c1c1d]/90 text-white px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500 ease-out z-[150] pointer-events-none border border-white/10 w-max max-w-[90%]">
-        <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Processing...</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Tersimpan di Galeri</span>
     </div>
 
     <!-- Top Solid Translucent Background -->
@@ -281,7 +284,7 @@
         // --- PWA Initialization ---
         function initPWA() {
             const manifestContent = {
-                name: "AI Magic Camera", short_name: "AICam", start_url: ".", display: "standalone",
+                name: "Lucid", short_name: "Lucid", start_url: ".", display: "standalone",
                 background_color: "#000000", theme_color: "#000000",
                 icons: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
             };
@@ -318,6 +321,10 @@
         const flashOverlay = document.getElementById('flash-overlay');
         const flashAutoText = document.getElementById('flash-auto-text');
         
+        const notificationBanner = document.getElementById('notification-banner');
+        const notificationText = document.getElementById('notification-text');
+        let notificationTimeout;
+
         const galleryBtn = document.getElementById('gallery-btn');
         const galleryThumbnail = document.getElementById('gallery-thumbnail');
         const galleryModal = document.getElementById('gallery-modal');
@@ -567,6 +574,37 @@
             }
         }
 
+        // --- Fungsi Notifikasi & Save Image ---
+        function showNotification(message) {
+            notificationText.textContent = message;
+            notificationBanner.style.top = '40px'; // Muncul dari atas
+            
+            clearTimeout(notificationTimeout);
+            notificationTimeout = setTimeout(() => {
+                notificationBanner.style.top = '-100px'; // Sembunyi lagi
+            }, 2500);
+        }
+
+        function saveImageToDevice(dataUrl) {
+            // Get current timestamp for filename
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+            
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `Lucid_${timeStr}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification("Foto tersimpan di perangkat");
+            
+            // Berikan efek haptic feedback jika didukung (untuk meyakinkan pesulap)
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+
         // --- Event Listeners: Shutter & Gallery Button ---
         shutterBtn.addEventListener('click', () => {
             if (videoElement.readyState >= 2) {
@@ -656,6 +694,10 @@
         let pointerStart = {x: 0, y: 0};
         let pointers = [];
         let maxPointers = 0; 
+        
+        // Variables for Long Press (Save Image)
+        let longPressTimer;
+        let isLongPressTriggered = false;
 
         function updateZoomTransform() {
             if (scale === 1 && swipeDeltaY === 0) { posX = 0; posY = 0; }
@@ -678,6 +720,18 @@
                 isPointerDown = true;
                 pointerStart = {x: e.clientX, y: e.clientY};
                 swipeDeltaY = 0;
+                isLongPressTriggered = false;
+                
+                // Start Long Press Timer (800ms)
+                longPressTimer = setTimeout(() => {
+                    isLongPressTriggered = true;
+                    // Simpan gambar yang saat ini sedang terlihat
+                    if (previewState === 'AI' && generatedImageData) {
+                        saveImageToDevice(generatedImageData);
+                    } else if ((previewState === 'ORIGINAL' || previewState === 'FADING') && originalImageData) {
+                        saveImageToDevice(originalImageData);
+                    }
+                }, 800);
                 
                 if (scale > 1) {
                     startPanX = e.clientX - posX;
@@ -710,6 +764,12 @@
                     updateZoomTransform();
                 }
             } else if (pointers.length === 1 && isPointerDown) {
+                // Cancel long press if user moves finger significantly
+                const moveDist = Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y);
+                if (moveDist > 10) {
+                    clearTimeout(longPressTimer);
+                }
+
                 if (scale > 1) {
                     let newPosX = e.clientX - startPanX;
                     let newPosY = e.clientY - startPanY;
@@ -739,6 +799,8 @@
         });
 
         const handlePointerUp = (e) => {
+            clearTimeout(longPressTimer); // Pastikan timer dibatalkan
+
             const index = pointers.findIndex(p => p.pointerId === e.pointerId);
             if (index !== -1) pointers.splice(index, 1);
 
@@ -752,6 +814,13 @@
             
             if (pointers.length === 0) {
                 isPointerDown = false;
+                
+                // Jika event long press baru saja terjadi, batalkan semua logika Tap/Swipe
+                if (isLongPressTriggered) {
+                    isLongPressTriggered = false;
+                    maxPointers = 0;
+                    return; 
+                }
                 
                 const deltaY = e.clientY - pointerStart.y;
                 const deltaX = e.clientX - pointerStart.x;
