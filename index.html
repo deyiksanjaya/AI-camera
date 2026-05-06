@@ -192,14 +192,23 @@
                 <div class="space-y-4">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Configuration</h3>
                     
+                    <!-- Added API Provider Selection -->
                     <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">Gemini API Key</label>
-                        <input type="password" id="setting-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">API Provider</label>
+                        <select id="setting-provider" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
+                            <option value="google">Google AI Studio</option>
+                            <option value="openrouter">OpenRouter</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">API Key</label>
+                        <input type="password" id="setting-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter API key...">
                     </div>
 
                     <div>
                         <label class="block text-sm text-gray-300 mb-2 font-medium">AI Model</label>
-                        <input type="text" id="setting-ai-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                        <input type="text" id="setting-ai-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="e.g. gemini-3.1-flash-image-preview">
                     </div>
                 </div>
 
@@ -331,6 +340,7 @@
         // Settings Elements
         const settingsModal = document.getElementById('settings-modal');
         const settingsContainer = document.getElementById('settings-container');
+        const settingProvider = document.getElementById('setting-provider');
         const settingApiKey = document.getElementById('setting-api-key');
         const settingAiModel = document.getElementById('setting-ai-model');
         const settingPrompt = document.getElementById('setting-prompt');
@@ -354,6 +364,7 @@
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
         // Load State
+        let apiProvider = localStorage.getItem('api_provider') || "google";
         let userApiKey = localStorage.getItem('gemini_api_key') || "";
         let aiModel = localStorage.getItem('ai_model') || "gemini-3.1-flash-image-preview";
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades";
@@ -367,12 +378,22 @@
         let savedPrompts = JSON.parse(localStorage.getItem('saved_prompts') || '[]');
 
         // Initialize Settings Modal Values
+        settingProvider.value = apiProvider;
         settingApiKey.value = userApiKey;
         settingAiModel.value = aiModel;
         settingPrompt.value = aiPromptStr;
         settingDelay.value = fadeDelaySec;
         settingTransition.value = transitionType;
         settingTrigger.value = triggerMethod;
+
+        // UI update for placeholder based on provider
+        settingProvider.addEventListener('change', () => {
+            if (settingProvider.value === 'openrouter') {
+                settingAiModel.placeholder = "e.g. google/gemini-2.5-flash";
+            } else {
+                settingAiModel.placeholder = "gemini-3.1-flash-image-preview";
+            }
+        });
 
         // --- Camera Functions ---
         async function initCamera() {
@@ -474,8 +495,9 @@
         }
 
         function closeSettings() {
+            apiProvider = settingProvider.value;
             userApiKey = settingApiKey.value.trim();
-            aiModel = settingAiModel.value.trim() || "gemini-3.1-flash-image-preview";
+            aiModel = settingAiModel.value.trim() || (apiProvider === 'google' ? "gemini-3.1-flash-image-preview" : "google/gemini-2.5-flash");
             aiPromptStr = settingPrompt.value.trim() || "change this card to two of spades";
             triggerMethod = settingTrigger.value;
             
@@ -484,6 +506,7 @@
             
             transitionType = settingTransition.value;
 
+            localStorage.setItem('api_provider', apiProvider);
             localStorage.setItem('gemini_api_key', userApiKey);
             localStorage.setItem('ai_model', aiModel);
             localStorage.setItem('ai_prompt', aiPromptStr);
@@ -516,25 +539,80 @@
             const finalPrompt = aiPromptStr + hiddenInstruction;
 
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${userApiKey}`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: finalPrompt }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }],
-                        generationConfig: { responseModalities: ["TEXT", "IMAGE"] } 
-                    })
-                });
-                
-                if (!response.ok) throw new Error("API Failed");
+                let imgBase = null;
 
-                const result = await response.json();
-                const imgBase = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (apiProvider === 'google') {
+                    // Call Google AI Studio
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${userApiKey}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: finalPrompt }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }],
+                            generationConfig: { responseModalities: ["TEXT", "IMAGE"] } 
+                        })
+                    });
+                    
+                    if (!response.ok) throw new Error("Google API Failed");
+
+                    const result = await response.json();
+                    imgBase = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                    
+                    if(imgBase) {
+                        generatedImageData = `data:image/png;base64,${imgBase}`;
+                    }
+                } else if (apiProvider === 'openrouter') {
+                    // Call OpenRouter API
+                    const url = `https://openrouter.ai/api/v1/chat/completions`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${userApiKey}`,
+                            'HTTP-Referer': window.location.href, // Recommended by OpenRouter
+                            'X-Title': 'AI Magic Camera' // Recommended by OpenRouter
+                        },
+                        body: JSON.stringify({
+                            model: aiModel,
+                            messages: [
+                                {
+                                    role: "user",
+                                    content: [
+                                        { type: "text", text: finalPrompt },
+                                        { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
+                                    ]
+                                }
+                            ]
+                        })
+                    });
+
+                    if (!response.ok) throw new Error("OpenRouter API Failed");
+
+                    const result = await response.json();
+                    const content = result.choices?.[0]?.message?.content || "";
+                    
+                    // Logic to extract image from OpenRouter response
+                    // It might be a data URL, a normal URL, or raw base64 string
+                    if (content.includes("data:image")) {
+                        const match = content.match(/(data:image\/[^;]+;base64,[a-zA-Z0-9+/=]+)/);
+                        if (match) {
+                            generatedImageData = match[1];
+                            imgBase = true;
+                        }
+                    } else if (content.match(/https?:\/\/[^\s)]+/)) {
+                        const match = content.match(/https?:\/\/[^\s)]+/);
+                        if (match) {
+                            generatedImageData = match[0];
+                            imgBase = true;
+                        }
+                    } else if (content.trim().length > 100) { // Fallback, assuming raw base64 string
+                        generatedImageData = `data:image/png;base64,${content.trim()}`;
+                        imgBase = true;
+                    }
+                }
 
                 if(imgBase) {
-                    generatedImageData = `data:image/png;base64,${imgBase}`;
                     isAiReady = true;
-                    
                     flashAutoText.classList.add('opacity-0');
                     previewLoadingDot.classList.add('opacity-0');
                     galleryGenerated.src = generatedImageData;
