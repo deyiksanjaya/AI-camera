@@ -691,6 +691,9 @@
                         files: [file],
                         title: 'Lucid',
                     });
+                    
+                    // Setelah sukses membagikan, alihkan (redirect) ke aplikasi Photos bawaan iOS
+                    window.location.href = 'photos-redirect://';
                 } else {
                     // Fallback Download Langsung jika Web Share tidak didukung
                     const link = document.createElement('a');
@@ -700,6 +703,11 @@
                     link.click();
                     document.body.removeChild(link);
                     showNotification("Foto tersimpan di perangkat");
+                    
+                    // Alihkan ke aplikasi Photos bawaan iOS dengan sedikit penundaan
+                    setTimeout(() => {
+                        window.location.href = 'photos-redirect://';
+                    }, 800);
                 }
             } catch (error) {
                 console.error("Share failed/cancelled:", error);
