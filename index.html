@@ -76,7 +76,7 @@
     <!-- Flash Overlay -->
     <div id="flash-overlay" class="fixed inset-0 bg-black z-20 opacity-0 pointer-events-none"></div>
 
-    <!-- Notification Banner (Fallback) -->
+    <!-- Notification Banner (Fallback untuk save/share native, bukan fullscreen) -->
     <div id="notification-banner" class="fixed top-[-100px] left-1/2 -translate-x-1/2 bg-[#1c1c1d]/90 text-white px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500 ease-out z-[150] pointer-events-none border border-white/10 w-max max-w-[90%]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -88,9 +88,9 @@
     <div class="fixed top-0 left-0 w-full h-[75px] bg-black/60 pointer-events-none z-0"></div>
 
     <!-- Top Right Controls -->
-    <div class="fixed top-[80px] right-4 bg-black/50 rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10">
-        <!-- Moon -->
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="fixed top-[80px] right-4 bg-black/50 rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10 pointer-events-auto">
+        <!-- Moon (Sekarang cuma indikator visual, nggak bisa diklik) -->
+        <svg id="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
         <!-- Flash A -->
@@ -340,6 +340,7 @@
         const shutterBtn = document.getElementById('shutter-btn');
         const flashOverlay = document.getElementById('flash-overlay');
         const flashAutoText = document.getElementById('flash-auto-text');
+        const moonIcon = document.getElementById('moon-icon');
         
         const notificationBanner = document.getElementById('notification-banner');
         const notificationText = document.getElementById('notification-text');
@@ -382,7 +383,7 @@
         
         // State preview: 'ORIGINAL', 'FADING', 'AI'
         let previewState = 'ORIGINAL'; 
-        let blackScreenTimer = null; // Timer untuk black screen
+        let blackScreenTimer = null; 
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
@@ -460,6 +461,29 @@
             currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
             videoElement.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
             initCamera();
+        }
+
+        // --- Cek Support Fullscreen API ---
+        function checkFullscreenSupport() {
+            const docElm = document.documentElement;
+            const isFullscreenSupported = docElm.requestFullscreen || docElm.webkitRequestFullscreen;
+            
+            // Kalau ngga support, flip icon bulannya kebalik (jadi indikator doang)
+            if (!isFullscreenSupported) {
+                moonIcon.style.transform = 'scaleX(-1)';
+            }
+        }
+
+        // --- Fullscreen Action ---
+        function enterFullscreen() {
+            const docElm = document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (docElm.requestFullscreen) {
+                    docElm.requestFullscreen().catch(() => { /* Silent fail */ });
+                } else if (docElm.webkitRequestFullscreen) {
+                    docElm.webkitRequestFullscreen(); // Silent fallback buat Safari lawas
+                }
+            }
         }
 
         // --- Notification Logic ---
@@ -613,12 +637,11 @@
                 
                 if(imgBase) {
                     generatedImageData = `data:image/png;base64,${imgBase}`;
-                    // Pastikan generatedImageData dimuat dulu di img tag sebelum men-hide dot indicator
                     const tempImg = new Image();
                     tempImg.onload = () => {
                         isAiReady = true;
                         flashAutoText.classList.add('opacity-0');
-                        previewLoadingDot.classList.add('opacity-0'); // Indikator hilang = siap share
+                        previewLoadingDot.classList.add('opacity-0');
                         galleryGenerated.src = generatedImageData;
                     };
                     tempImg.src = generatedImageData;
@@ -663,6 +686,9 @@
         galleryBtn.addEventListener('click', () => {
             if (!originalImageData) return;
             
+            // Trigger fullscreen langsung saat klik gallery
+            enterFullscreen();
+
             stopCamera();
             resetBlackScreenState(); // Pastikan black screen hilang saat buka
             
@@ -756,7 +782,6 @@
             clearTimeout(blackScreenTimer);
             blackScreenTimer = setTimeout(() => {
                 blackScreenOverlay.classList.remove('opacity-0', 'pointer-events-none');
-                // Mengubah pointer-events menjadi otomatis menutupi layar tanpa mengganggu propagasi event ke root
             }, blackScreenDelaySec * 1000);
         }
 
@@ -777,7 +802,6 @@
         let pointers = [];
         let maxPointers = 0; 
         
-        // Variables for Double Tap
         let lastTapTime = 0;
 
         function updateZoomTransform() {
@@ -848,7 +872,7 @@
                     const deltaY = e.clientY - pointerStart.y;
                     const absDeltaX = Math.abs(e.clientX - pointerStart.x);
                     
-                    if (deltaY > 0 && deltaY > absDeltaX) { // SWIPE DOWN (Visual Feedback Close)
+                    if (deltaY > 0 && deltaY > absDeltaX) {
                         swipeDeltaY = deltaY * 0.4; 
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = `rgba(0,0,0,${Math.max(0.4, 1 - (deltaY / 400))})`;
@@ -880,11 +904,8 @@
                 const absDeltaY = Math.abs(deltaY);
                 const absDeltaX = Math.abs(deltaX);
                 
-                // Deteksi murni TAP
                 const isTapGesture = absDeltaY < 10 && absDeltaX < 10;
-                // Deteksi Swipe Down (tutup gallery)
                 const isSwipeDown = deltaY > 80 && deltaY > absDeltaX * 1.5;
-                // Deteksi Swipe Up (opsi trigger)
                 const isSwipeUp = deltaY < -80 && absDeltaY > absDeltaX * 1.5;
 
                 // --- DOUBLE TAP LOGIC ---
@@ -961,7 +982,7 @@
         function closeGallery() {
             swipeDeltaY = 0;
             updateZoomTransform();
-            resetBlackScreenState(); // Reset timer dan overlay
+            resetBlackScreenState(); 
             
             const btnRect = galleryBtn.getBoundingClientRect();
             
@@ -991,11 +1012,12 @@
                     galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
                     galleryOriginal.style.opacity = '0';
                     
+                    // Di sini gambar mulai memudar. Kita tunggu sampai fade selesai, baru panggil blackscreen.
                     setTimeout(() => {
                         if (previewState === 'FADING' || previewState === 'AI') {
                             previewState = 'AI';
                             galleryThumbnail.src = generatedImageData;
-                            startBlackScreenTimer(); // Mulai timer stealth
+                            startBlackScreenTimer(); // Mulai ngitung Black Screen SETELAH gambar AI utuh muncul
                         }
                     }, transitionType === 'fade' ? 1500 : 50);
                 }
@@ -1013,11 +1035,14 @@
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
                 galleryThumbnail.src = generatedImageData;
-                startBlackScreenTimer(); // Mulai timer stealth
+                startBlackScreenTimer(); // Instan, langsung mulai ngitung kalau tap di tengah fade
             } 
         }
 
-        window.addEventListener('load', initCamera);
+        window.addEventListener('load', () => {
+            initCamera();
+            checkFullscreenSupport(); // Cek pas web keload pertama kali
+        });
     </script>
 </body>
 </html>
