@@ -740,14 +740,14 @@
                 swipeDeltaY = 0;
                 isLongPressTriggered = false;
                 
-                // Start Long Press Timer (800ms) untuk Share
+                // Start Long Press Timer (300ms) untuk Share
                 clearTimeout(longPressTimer);
                 longPressTimer = setTimeout(() => {
                     isLongPressTriggered = true;
                     // Ambil gambar yang saat ini sedang terlihat
                     const currentDataUrl = (previewState === 'AI' && generatedImageData) ? generatedImageData : originalImageData;
                     shareImageToDevice(currentDataUrl);
-                }, 800);
+                }, 300);
                 
                 if (scale > 1) {
                     startPanX = e.clientX - posX;
