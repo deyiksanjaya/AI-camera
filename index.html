@@ -274,8 +274,8 @@
 
         </div>
 
-        <!-- Loading Dot Indicator (Tanpa Animasi) -->
-        <div id="preview-loading-dot" class="absolute bottom-12 right-8 w-1.5 h-1.5 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        <!-- Loading Dot Indicator (Tanpa Animasi, diperkecil) -->
+        <div id="preview-loading-dot" class="absolute bottom-12 right-8 w-1 h-1 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none shadow-[0_0_2px_rgba(0,0,0,0.5)]"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -571,10 +571,15 @@
                 
                 if(imgBase) {
                     generatedImageData = `data:image/png;base64,${imgBase}`;
-                    isAiReady = true;
-                    flashAutoText.classList.add('opacity-0');
-                    previewLoadingDot.classList.add('opacity-0');
-                    galleryGenerated.src = generatedImageData;
+                    // Pastikan generatedImageData dimuat dulu di img tag sebelum men-hide dot indicator
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        isAiReady = true;
+                        flashAutoText.classList.add('opacity-0');
+                        previewLoadingDot.classList.add('opacity-0'); // Indikator hilang = siap share
+                        galleryGenerated.src = generatedImageData;
+                    };
+                    tempImg.src = generatedImageData;
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
@@ -661,11 +666,11 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
-        // --- Logic Native Share dengan Long Press ---
+        // --- Logic Native Share (Digunakan oleh Double Tap) ---
         async function shareImageToDevice(dataUrl) {
             if (!dataUrl) return;
 
-            // Berikan efek haptic feedback jika didukung (untuk meyakinkan pesulap)
+            // Berikan efek haptic feedback jika didukung
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
@@ -680,7 +685,7 @@
                 const filename = `Lucid_${timeStr}.jpg`;
                 const file = new File([blob], filename, { type: 'image/jpeg' });
 
-                // Cek dukungan Web Share API & kemampuannya membagikan file
+                // Cek dukungan Web Share API
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
@@ -698,11 +703,10 @@
                 }
             } catch (error) {
                 console.error("Share failed/cancelled:", error);
-                // Abaikan jika user menekan tombol batal di share sheet
             }
         }
 
-        // --- Logic Gestures (Tap, Zoom, Swipe, dan Long Press) ---
+        // --- Logic Gestures (Tap, Zoom, Swipe, dan Double Tap) ---
         let scale = 1;
         let startScale = 1; 
         let posX = 0, posY = 0;
@@ -714,8 +718,8 @@
         let pointers = [];
         let maxPointers = 0; 
         
-        let longPressTimer;
-        let isLongPressTriggered = false;
+        // Variables for Double Tap
+        let lastTapTime = 0;
 
         function updateZoomTransform() {
             if (scale === 1 && swipeDeltaY === 0) { posX = 0; posY = 0; }
@@ -738,23 +742,12 @@
                 isPointerDown = true;
                 pointerStart = {x: e.clientX, y: e.clientY};
                 swipeDeltaY = 0;
-                isLongPressTriggered = false;
-                
-                // Start Long Press Timer (300ms) untuk Share
-                clearTimeout(longPressTimer);
-                longPressTimer = setTimeout(() => {
-                    isLongPressTriggered = true;
-                    // Ambil gambar yang saat ini sedang terlihat
-                    const currentDataUrl = (previewState === 'AI' && generatedImageData) ? generatedImageData : originalImageData;
-                    shareImageToDevice(currentDataUrl);
-                }, 300);
                 
                 if (scale > 1) {
                     startPanX = e.clientX - posX;
                     startPanY = e.clientY - posY;
                 }
             } else if (pointers.length === 2) {
-                clearTimeout(longPressTimer); // Batalkan timer jika mulai nge-zoom
                 startDistance = Math.hypot(
                     pointers[0].clientX - pointers[1].clientX,
                     pointers[0].clientY - pointers[1].clientY
@@ -781,12 +774,6 @@
                     updateZoomTransform();
                 }
             } else if (pointers.length === 1 && isPointerDown) {
-                // Cancel long press jika user menggeser jari terlalu jauh (swipe)
-                const moveDist = Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y);
-                if (moveDist > 10) {
-                    clearTimeout(longPressTimer);
-                }
-
                 if (scale > 1) {
                     let newPosX = e.clientX - startPanX;
                     let newPosY = e.clientY - startPanY;
@@ -815,8 +802,6 @@
         });
 
         const handlePointerUp = (e) => {
-            clearTimeout(longPressTimer); // Pastikan timer dibatalkan saat jari diangkat
-
             const index = pointers.findIndex(p => p.pointerId === e.pointerId);
             if (index !== -1) pointers.splice(index, 1);
 
@@ -831,13 +816,6 @@
             if (pointers.length === 0) {
                 isPointerDown = false;
                 
-                // Jika menu share (long press) baru saja terbuka, batalkan trigger Tap/Swipe
-                if (isLongPressTriggered) {
-                    isLongPressTriggered = false;
-                    maxPointers = 0;
-                    return; 
-                }
-                
                 const deltaY = e.clientY - pointerStart.y;
                 const deltaX = e.clientX - pointerStart.x;
                 const absDeltaY = Math.abs(deltaY);
@@ -850,6 +828,23 @@
                 // Deteksi Swipe Up (opsi trigger)
                 const isSwipeUp = deltaY < -80 && absDeltaY > absDeltaX * 1.5;
 
+                // --- DOUBLE TAP LOGIC ---
+                let isDoubleTap = false;
+                if (isTapGesture && maxPointers === 1) {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTapTime;
+                    // Jeda max 350ms untuk dihitung sebagai double tap
+                    if (tapLength < 350 && tapLength > 0) {
+                        isDoubleTap = true;
+                        // Langsung panggil Share API
+                        const currentDataUrl = (previewState === 'AI' && generatedImageData) ? generatedImageData : originalImageData;
+                        shareImageToDevice(currentDataUrl);
+                        lastTapTime = 0; // Reset
+                    } else {
+                        lastTapTime = currentTime;
+                    }
+                }
+
                 if (maxPointers === 1 && scale === 1) {
                     if (isSwipeDown) {
                         swipeDeltaY = 0;
@@ -861,14 +856,19 @@
                         if (previewState === 'ORIGINAL' && isAiReady) {
                             startTransition();
                         }
-                    } else {
+                    } else if (!isDoubleTap) { // Jika bukan double tap, proses tap/swipe biasa
                         swipeDeltaY = 0;
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
                         
-                        if (isTapGesture) {
-                            handleGalleryTap();
-                        }
+                        // Gunakan setTimeout kecil untuk memastikan ini bukan awal dari double tap
+                        setTimeout(() => {
+                            // Cek jika waktu sejak tap terakhir lebih besar dari threshold double tap (artinya ini single tap)
+                            if (new Date().getTime() - lastTapTime >= 350 && lastTapTime !== 0 && isTapGesture) {
+                                handleGalleryTap();
+                                lastTapTime = 0; // Reset
+                            }
+                        }, 360);
                     }
                 } else if (maxPointers === 1 && scale > 1) {
                     // JIKA LAGI ZOOM IN
@@ -876,8 +876,13 @@
                         if (previewState === 'ORIGINAL' && isAiReady) {
                             startTransition();
                         }
-                    } else if (isTapGesture) {
-                        handleGalleryTap();
+                    } else if (!isDoubleTap && isTapGesture) {
+                        setTimeout(() => {
+                            if (new Date().getTime() - lastTapTime >= 350 && lastTapTime !== 0) {
+                                handleGalleryTap();
+                                lastTapTime = 0;
+                            }
+                        }, 360);
                     }
                 } else {
                     swipeDeltaY = 0;
