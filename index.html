@@ -76,7 +76,7 @@
     <!-- Flash Overlay -->
     <div id="flash-overlay" class="fixed inset-0 bg-black z-20 opacity-0 pointer-events-none"></div>
 
-    <!-- Notification Banner -->
+    <!-- Notification Banner (Fallback) -->
     <div id="notification-banner" class="fixed top-[-100px] left-1/2 -translate-x-1/2 bg-[#1c1c1d]/90 text-white px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500 ease-out z-[150] pointer-events-none border border-white/10 w-max max-w-[90%]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -275,7 +275,7 @@
         </div>
 
         <!-- Loading Dot Indicator (Tanpa Animasi) -->
-        <div id="preview-loading-dot" class="absolute bottom-8 left-8 w-1 h-1 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        <div id="preview-loading-dot" class="absolute bottom-12 right-8 w-1.5 h-1.5 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -428,6 +428,17 @@
             initCamera();
         }
 
+        // --- Notification Logic ---
+        function showNotification(message) {
+            notificationText.textContent = message;
+            notificationBanner.style.top = '40px'; 
+            
+            clearTimeout(notificationTimeout);
+            notificationTimeout = setTimeout(() => {
+                notificationBanner.style.top = '-100px'; 
+            }, 2500);
+        }
+
         // --- Settings & Prompt Manager Functions ---
         function renderPromptList() {
             promptListContainer.innerHTML = '';
@@ -539,12 +550,10 @@
                 previewLoadingDot.classList.remove('opacity-0');
             }
 
-            // Menyisipkan instruksi magic/photorealistic secara otomatis
             const hiddenInstruction = ", photo realistic, keep other details exactly the same, use standard face design for playing card";
             const finalPrompt = aiPromptStr + hiddenInstruction;
 
             try {
-                // Call Google AI Studio
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${activeKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
@@ -571,37 +580,6 @@
                 console.error("Fetch Error:", error);
                 flashAutoText.classList.add('opacity-0');
                 previewLoadingDot.classList.add('opacity-0');
-            }
-        }
-
-        // --- Fungsi Notifikasi & Save Image ---
-        function showNotification(message) {
-            notificationText.textContent = message;
-            notificationBanner.style.top = '40px'; // Muncul dari atas
-            
-            clearTimeout(notificationTimeout);
-            notificationTimeout = setTimeout(() => {
-                notificationBanner.style.top = '-100px'; // Sembunyi lagi
-            }, 2500);
-        }
-
-        function saveImageToDevice(dataUrl) {
-            // Get current timestamp for filename
-            const now = new Date();
-            const timeStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-            
-            const link = document.createElement('a');
-            link.href = dataUrl;
-            link.download = `Lucid_${timeStr}.jpg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showNotification("Foto tersimpan di perangkat");
-            
-            // Berikan efek haptic feedback jika didukung (untuk meyakinkan pesulap)
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
             }
         }
 
@@ -660,7 +638,7 @@
 
             galleryModal.classList.remove('hidden');
             galleryModal.classList.add('flex');
-            
+
             const btnRect = galleryBtn.getBoundingClientRect();
             galleryAnimWrapper.style.transition = 'none';
             galleryAnimWrapper.style.left = `${btnRect.left}px`;
@@ -683,7 +661,48 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
-        // --- Logic Gestures (Tap, Zoom, dan Swipe Down/Up) ---
+        // --- Logic Native Share dengan Long Press ---
+        async function shareImageToDevice(dataUrl) {
+            if (!dataUrl) return;
+
+            // Berikan efek haptic feedback jika didukung (untuk meyakinkan pesulap)
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
+            try {
+                // Konversi Base64 ke Blob untuk Web Share API
+                const res = await fetch(dataUrl);
+                const blob = await res.blob();
+                
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+                const filename = `Lucid_${timeStr}.jpg`;
+                const file = new File([blob], filename, { type: 'image/jpeg' });
+
+                // Cek dukungan Web Share API & kemampuannya membagikan file
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Lucid',
+                    });
+                } else {
+                    // Fallback Download Langsung jika Web Share tidak didukung
+                    const link = document.createElement('a');
+                    link.href = dataUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showNotification("Foto tersimpan di perangkat");
+                }
+            } catch (error) {
+                console.error("Share failed/cancelled:", error);
+                // Abaikan jika user menekan tombol batal di share sheet
+            }
+        }
+
+        // --- Logic Gestures (Tap, Zoom, Swipe, dan Long Press) ---
         let scale = 1;
         let startScale = 1; 
         let posX = 0, posY = 0;
@@ -695,7 +714,6 @@
         let pointers = [];
         let maxPointers = 0; 
         
-        // Variables for Long Press (Save Image)
         let longPressTimer;
         let isLongPressTriggered = false;
 
@@ -722,15 +740,13 @@
                 swipeDeltaY = 0;
                 isLongPressTriggered = false;
                 
-                // Start Long Press Timer (800ms)
+                // Start Long Press Timer (800ms) untuk Share
+                clearTimeout(longPressTimer);
                 longPressTimer = setTimeout(() => {
                     isLongPressTriggered = true;
-                    // Simpan gambar yang saat ini sedang terlihat
-                    if (previewState === 'AI' && generatedImageData) {
-                        saveImageToDevice(generatedImageData);
-                    } else if ((previewState === 'ORIGINAL' || previewState === 'FADING') && originalImageData) {
-                        saveImageToDevice(originalImageData);
-                    }
+                    // Ambil gambar yang saat ini sedang terlihat
+                    const currentDataUrl = (previewState === 'AI' && generatedImageData) ? generatedImageData : originalImageData;
+                    shareImageToDevice(currentDataUrl);
                 }, 800);
                 
                 if (scale > 1) {
@@ -738,6 +754,7 @@
                     startPanY = e.clientY - posY;
                 }
             } else if (pointers.length === 2) {
+                clearTimeout(longPressTimer); // Batalkan timer jika mulai nge-zoom
                 startDistance = Math.hypot(
                     pointers[0].clientX - pointers[1].clientX,
                     pointers[0].clientY - pointers[1].clientY
@@ -764,7 +781,7 @@
                     updateZoomTransform();
                 }
             } else if (pointers.length === 1 && isPointerDown) {
-                // Cancel long press if user moves finger significantly
+                // Cancel long press jika user menggeser jari terlalu jauh (swipe)
                 const moveDist = Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y);
                 if (moveDist > 10) {
                     clearTimeout(longPressTimer);
@@ -790,7 +807,6 @@
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = `rgba(0,0,0,${Math.max(0.4, 1 - (deltaY / 400))})`;
                     } else {
-                        // Tidak ada visual feedback sama sekali saat swipe up (atau aksi lainnya)
                         swipeDeltaY = 0;
                         updateZoomTransform();
                     }
@@ -799,7 +815,7 @@
         });
 
         const handlePointerUp = (e) => {
-            clearTimeout(longPressTimer); // Pastikan timer dibatalkan
+            clearTimeout(longPressTimer); // Pastikan timer dibatalkan saat jari diangkat
 
             const index = pointers.findIndex(p => p.pointerId === e.pointerId);
             if (index !== -1) pointers.splice(index, 1);
@@ -815,7 +831,7 @@
             if (pointers.length === 0) {
                 isPointerDown = false;
                 
-                // Jika event long press baru saja terjadi, batalkan semua logika Tap/Swipe
+                // Jika menu share (long press) baru saja terbuka, batalkan trigger Tap/Swipe
                 if (isLongPressTriggered) {
                     isLongPressTriggered = false;
                     maxPointers = 0;
