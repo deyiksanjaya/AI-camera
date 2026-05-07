@@ -231,6 +231,24 @@
                     </div>
                 </div>
 
+                <!-- Section: Black Screen -->
+                <div class="space-y-4 pt-5 border-t border-white/5">
+                    <div class="flex justify-between items-center pl-1">
+                        <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-black-screen" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ffd60a]"></div>
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
+                        <div class="flex-1">
+                            <label class="block text-sm text-gray-300 font-medium">Delay before blackout</label>
+                            <span class="text-[10px] text-gray-500">Min 3.0 seconds after AI appears</span>
+                        </div>
+                        <input type="number" id="setting-black-screen-delay" class="w-16 bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="3" step="0.5">
+                    </div>
+                </div>
+
                 <!-- Section: Prompts -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <div class="flex justify-between items-center pl-1">
@@ -271,11 +289,13 @@
                 <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
                 <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
             </div>
-
         </div>
 
-        <!-- Loading Dot Indicator (Tanpa Animasi, diperkecil) -->
-        <div id="preview-loading-dot" class="absolute bottom-12 right-8 w-1 h-1 bg-gray-400/80 rounded-full z-30 opacity-0 transition-opacity duration-300 pointer-events-none shadow-[0_0_2px_rgba(0,0,0,0.5)]"></div>
+        <!-- Black Screen Overlay untuk fitur Stealth -->
+        <div id="black-screen-overlay" class="absolute inset-0 bg-black z-[45] opacity-0 pointer-events-none transition-opacity duration-500"></div>
+
+        <!-- Loading Dot Indicator -->
+        <div id="preview-loading-dot" class="absolute bottom-12 right-8 w-1 h-1 bg-gray-400/80 rounded-full z-50 opacity-0 transition-opacity duration-300 pointer-events-none shadow-[0_0_2px_rgba(0,0,0,0.5)]"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
@@ -333,6 +353,7 @@
         const galleryOriginal = document.getElementById('gallery-original');
         const galleryGenerated = document.getElementById('gallery-generated');
         const previewLoadingDot = document.getElementById('preview-loading-dot');
+        const blackScreenOverlay = document.getElementById('black-screen-overlay');
         
         // Settings Elements
         const settingsModal = document.getElementById('settings-modal');
@@ -347,6 +368,9 @@
         const settingTrigger = document.getElementById('setting-trigger');
         const promptListContainer = document.getElementById('prompt-list');
         
+        const settingBlackScreen = document.getElementById('setting-black-screen');
+        const settingBlackScreenDelay = document.getElementById('setting-black-screen-delay');
+        
         const canvas = document.getElementById('photo-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -358,6 +382,7 @@
         
         // State preview: 'ORIGINAL', 'FADING', 'AI'
         let previewState = 'ORIGINAL'; 
+        let blackScreenTimer = null; // Timer untuk black screen
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
@@ -387,6 +412,12 @@
         let triggerMethod = localStorage.getItem('trigger_method') || "tap";
         let savedPrompts = JSON.parse(localStorage.getItem('saved_prompts') || '[]');
 
+        // Load Black Screen State
+        let isBlackScreenEnabled = localStorage.getItem('black_screen_enabled') === 'true';
+        let storedBSDelay = localStorage.getItem('black_screen_delay');
+        let blackScreenDelaySec = storedBSDelay !== null ? parseFloat(storedBSDelay) : 3;
+        if (isNaN(blackScreenDelaySec) || blackScreenDelaySec < 3) blackScreenDelaySec = 3;
+
         // Initialize Settings Modal Values
         settingGoogleApiKey.value = googleApiKey;
         settingGoogleModel.value = googleAiModel;
@@ -395,6 +426,9 @@
         settingDelay.value = fadeDelaySec;
         settingTransition.value = transitionType;
         settingTrigger.value = triggerMethod;
+        
+        settingBlackScreen.checked = isBlackScreenEnabled;
+        settingBlackScreenDelay.value = blackScreenDelaySec;
 
         // --- Camera Functions ---
         async function initCamera() {
@@ -517,6 +551,11 @@
             fadeDelaySec = isNaN(parsedDelay) ? 2 : Math.max(0, parsedDelay);
             
             transitionType = settingTransition.value;
+            
+            // Simpan state Black Screen
+            isBlackScreenEnabled = settingBlackScreen.checked;
+            let parsedBSDelay = parseFloat(settingBlackScreenDelay.value);
+            blackScreenDelaySec = (isNaN(parsedBSDelay) || parsedBSDelay < 3) ? 3 : parsedBSDelay;
 
             // Simpan semua ke LocalStorage
             localStorage.setItem('google_api_key', googleApiKey);
@@ -526,6 +565,9 @@
             localStorage.setItem('fade_delay', fadeDelaySec);
             localStorage.setItem('transition_type', transitionType);
             localStorage.setItem('trigger_method', triggerMethod);
+            
+            localStorage.setItem('black_screen_enabled', isBlackScreenEnabled);
+            localStorage.setItem('black_screen_delay', blackScreenDelaySec);
 
             settingsModal.classList.add('opacity-0');
             settingsContainer.classList.remove('scale-100');
@@ -622,6 +664,8 @@
             if (!originalImageData) return;
             
             stopCamera();
+            resetBlackScreenState(); // Pastikan black screen hilang saat buka
+            
             galleryOriginal.src = originalImageData;
             galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
             
@@ -666,17 +710,13 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
-        // --- Logic Native Share (Digunakan oleh Double Tap) ---
+        // --- Logic Native Share ---
         async function shareImageToDevice(dataUrl) {
             if (!dataUrl) return;
 
-            // Berikan efek haptic feedback jika didukung
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+            if (navigator.vibrate) navigator.vibrate(50);
 
             try {
-                // Konversi Base64 ke Blob untuk Web Share API
                 const res = await fetch(dataUrl);
                 const blob = await res.blob();
                 
@@ -685,17 +725,14 @@
                 const filename = `Lucid_${timeStr}.jpg`;
                 const file = new File([blob], filename, { type: 'image/jpeg' });
 
-                // Cek dukungan Web Share API
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
                         title: 'Lucid',
                     });
                     
-                    // Setelah sukses membagikan, alihkan (redirect) ke aplikasi Photos bawaan iOS
                     window.location.href = 'photos-redirect://';
                 } else {
-                    // Fallback Download Langsung jika Web Share tidak didukung
                     const link = document.createElement('a');
                     link.href = dataUrl;
                     link.download = filename;
@@ -704,7 +741,6 @@
                     document.body.removeChild(link);
                     showNotification("Foto tersimpan di perangkat");
                     
-                    // Alihkan ke aplikasi Photos bawaan iOS dengan sedikit penundaan
                     setTimeout(() => {
                         window.location.href = 'photos-redirect://';
                     }, 800);
@@ -712,6 +748,21 @@
             } catch (error) {
                 console.error("Share failed/cancelled:", error);
             }
+        }
+
+        // --- Logic Black Screen ---
+        function startBlackScreenTimer() {
+            if (!isBlackScreenEnabled) return;
+            clearTimeout(blackScreenTimer);
+            blackScreenTimer = setTimeout(() => {
+                blackScreenOverlay.classList.remove('opacity-0', 'pointer-events-none');
+                // Mengubah pointer-events menjadi otomatis menutupi layar tanpa mengganggu propagasi event ke root
+            }, blackScreenDelaySec * 1000);
+        }
+
+        function resetBlackScreenState() {
+            clearTimeout(blackScreenTimer);
+            blackScreenOverlay.classList.add('opacity-0', 'pointer-events-none');
         }
 
         // --- Logic Gestures (Tap, Zoom, Swipe, dan Double Tap) ---
@@ -841,13 +892,12 @@
                 if (isTapGesture && maxPointers === 1) {
                     const currentTime = new Date().getTime();
                     const tapLength = currentTime - lastTapTime;
-                    // Jeda max 350ms untuk dihitung sebagai double tap
+                    
                     if (tapLength < 350 && tapLength > 0) {
                         isDoubleTap = true;
-                        // Langsung panggil Share API
                         const currentDataUrl = (previewState === 'AI' && generatedImageData) ? generatedImageData : originalImageData;
                         shareImageToDevice(currentDataUrl);
-                        lastTapTime = 0; // Reset
+                        lastTapTime = 0;
                     } else {
                         lastTapTime = currentTime;
                     }
@@ -864,22 +914,19 @@
                         if (previewState === 'ORIGINAL' && isAiReady) {
                             startTransition();
                         }
-                    } else if (!isDoubleTap) { // Jika bukan double tap, proses tap/swipe biasa
+                    } else if (!isDoubleTap) {
                         swipeDeltaY = 0;
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
                         
-                        // Gunakan setTimeout kecil untuk memastikan ini bukan awal dari double tap
                         setTimeout(() => {
-                            // Cek jika waktu sejak tap terakhir lebih besar dari threshold double tap (artinya ini single tap)
                             if (new Date().getTime() - lastTapTime >= 350 && lastTapTime !== 0 && isTapGesture) {
                                 handleGalleryTap();
-                                lastTapTime = 0; // Reset
+                                lastTapTime = 0; 
                             }
                         }, 360);
                     }
                 } else if (maxPointers === 1 && scale > 1) {
-                    // JIKA LAGI ZOOM IN
                     if (isSwipeUp && triggerMethod === 'swipe-up') {
                         if (previewState === 'ORIGINAL' && isAiReady) {
                             startTransition();
@@ -914,6 +961,7 @@
         function closeGallery() {
             swipeDeltaY = 0;
             updateZoomTransform();
+            resetBlackScreenState(); // Reset timer dan overlay
             
             const btnRect = galleryBtn.getBoundingClientRect();
             
@@ -947,6 +995,7 @@
                         if (previewState === 'FADING' || previewState === 'AI') {
                             previewState = 'AI';
                             galleryThumbnail.src = generatedImageData;
+                            startBlackScreenTimer(); // Mulai timer stealth
                         }
                     }, transitionType === 'fade' ? 1500 : 50);
                 }
@@ -964,6 +1013,7 @@
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
                 galleryThumbnail.src = generatedImageData;
+                startBlackScreenTimer(); // Mulai timer stealth
             } 
         }
 
