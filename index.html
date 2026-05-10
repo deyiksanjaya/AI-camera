@@ -472,6 +472,8 @@
                 settingPrompt.classList.replace('focus:border-blue-400', 'focus:border-[#ffd60a]');
                 savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10';
             }
+
+            renderPromptList(); // Memastikan list list otomatis berubah saat dropdown diganti
         }
 
         settingEffectMode.addEventListener('change', updateModeUI);
@@ -522,7 +524,11 @@
         // --- Prompts Rendering & Management ---
         function renderPromptList() {
             promptListContainer.innerHTML = '';
-            if (savedPrompts.length === 0) {
+            
+            const currentMode = settingEffectMode.value;
+            const visiblePrompts = savedPrompts.filter(p => p.mode === currentMode);
+
+            if (visiblePrompts.length === 0) {
                 promptListContainer.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -531,7 +537,7 @@
                 return;
             }
 
-            savedPrompts.forEach((item, index) => {
+            visiblePrompts.forEach((item) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
                 const divItem = document.createElement('div');
@@ -543,23 +549,24 @@
                 textSpan.className = `text-xs truncate pr-3 cursor-pointer flex-1 leading-relaxed ${isBlue ? 'text-blue-300' : 'text-gray-300'}`;
                 textSpan.textContent = item.text;
                 
-                // Switch mode and load prompt when clicked
                 textSpan.onclick = () => { 
-                    settingEffectMode.value = item.mode;
+                    settingPrompt.value = item.text;
                     if (item.mode === 'real-to-ai') {
                         promptRealToAi = item.text;
                     } else {
                         promptAiToReal = item.text;
                     }
-                    updateModeUI();
                 };
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-all';
                 deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
-                    deletePrompt(index);
+                    // Cari index di array aslinya biar nggak salah hapus
+                    const actualIndex = savedPrompts.findIndex(p => p.text === item.text && p.mode === item.mode);
+                    if(actualIndex > -1) deletePrompt(actualIndex);
                 };
 
                 divItem.appendChild(textSpan);
@@ -586,8 +593,7 @@
         }
 
         function openSettings() {
-            renderPromptList();
-            updateModeUI(); 
+            updateModeUI(); // renderPromptList sudah ada di dalam sini
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
             
