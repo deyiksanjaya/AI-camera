@@ -404,6 +404,7 @@
         let googleAiModel = localStorage.getItem('google_ai_model') || "gemini-3.1-flash-image-preview";
         let effectMode = localStorage.getItem('effect_mode') || 'real-to-ai';
         
+        // Separate prompts logic
         let promptRealToAi = localStorage.getItem('prompt_real_to_ai') || localStorage.getItem('ai_prompt') || "change this card to two of spades";
         let promptAiToReal = localStorage.getItem('prompt_ai_to_real') || "empty table, nothing on it";
 
@@ -446,6 +447,17 @@
         // --- Persistence Helper ---
         function saveMagicState() {
             try {
+                // KALAU TRIK SELESAI -> HAPUS SEMUA DATA DARI LOCAL STORAGE
+                if (isTrickCompleted) {
+                    localStorage.removeItem('magic_original_img');
+                    localStorage.removeItem('magic_generated_img');
+                    localStorage.removeItem('magic_is_ai_ready');
+                    localStorage.removeItem('magic_is_trick_completed');
+                    localStorage.removeItem('magic_preview_state');
+                    return; // Stop disini
+                }
+
+                // KALAU TRIK BELUM SELESAI -> SIMPAN BIAR BISA DILANJUTIN
                 if (originalImageData) localStorage.setItem('magic_original_img', originalImageData);
                 else localStorage.removeItem('magic_original_img');
 
@@ -469,9 +481,8 @@
 
             if (originalImageData || generatedImageData) {
                 if (isTrickCompleted) {
-                    // Kalo udah kelar, tampilin yang tersisa di memory cleanup
                     let finalImg = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
-                    galleryThumbnail.src = finalImg || originalImageData; // Fallback safe
+                    galleryThumbnail.src = finalImg || originalImageData;
                 } else {
                     if (effectMode === 'ai-to-real') {
                         galleryThumbnail.src = isAiReady && generatedImageData ? generatedImageData : originalImageData;
@@ -514,7 +525,6 @@
             }
 
             renderPromptList(); 
-            // Thumbnail preview update if we changed modes while trick is in progress
             loadMagicState(); 
         }
 
@@ -710,7 +720,7 @@
 
             if (!activeKey) return;
             isAiReady = false;
-            saveMagicState(); // Save processing state
+            saveMagicState(); 
             
             flashAutoText.classList.remove('opacity-0');
             if (!galleryModal.classList.contains('hidden')) {
@@ -742,7 +752,7 @@
                     const tempImg = new Image();
                     tempImg.onload = () => {
                         isAiReady = true;
-                        saveMagicState(); // Save when done generating
+                        saveMagicState(); 
 
                         flashAutoText.classList.add('opacity-0');
                         previewLoadingDot.classList.add('opacity-0');
@@ -750,7 +760,6 @@
                         prepAiStatus.textContent = 'Ready on Standby ✅';
                         prepAiStatus.classList.replace('text-[#ffd60a]', 'text-green-400');
                         
-                        // Update the preview box if we are in prep mode!
                         if (!prepPreviewContainer.classList.contains('hidden')) {
                             prepPreviewImg.src = generatedImageData;
                         }
@@ -796,15 +805,14 @@
                 ctx.drawImage(videoElement, 0, 0, w, h);
                 ctx.restore();
                 
-                // Reset State Full and Save
+                // Reset State
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
                 generatedImageData = null;
                 isAiReady = false;
                 isTrickCompleted = false;
                 previewState = 'FRONT';
-                saveMagicState();
+                saveMagicState(); // Save ke local storage
                 
-                // Ekstra bersihin memori canvas DOM
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (isPrepModeActive) {
@@ -821,7 +829,7 @@
                     }, 50);
 
                     prepPreviewContainer.classList.remove('hidden');
-                    prepPreviewImg.src = originalImageData; // Init Preview Asli
+                    prepPreviewImg.src = originalImageData;
                     prepAiStatus.textContent = 'Processing AI...';
                     prepAiStatus.classList.remove('text-green-400', 'text-red-400');
                     prepAiStatus.classList.add('text-[#ffd60a]');
@@ -839,23 +847,20 @@
             }
         });
 
-        // BUKA Gallery Animasi "Shape Shift"
+        // BUKA Gallery
         galleryBtn.addEventListener('click', () => {
-            // Cek apa galeri masih nampilin picsum (belum ada jepretan)
             if (galleryThumbnail.src.includes('picsum')) return;
             
             stopCamera();
             resetBlackScreenState(); 
             
             if (isTrickCompleted) {
-                // Kalo trick udah kelar, cuma tampilin gambar FINAL, ngga mikirin yang lain
                 let finalImage = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
-                galleryOriginal.removeAttribute('src'); // Bersihin memori layer depan
-                galleryGenerated.src = finalImage || originalImageData; // safe fallback
+                galleryOriginal.removeAttribute('src'); 
+                galleryGenerated.src = finalImage || originalImageData; 
                 galleryOriginal.style.opacity = '0';
                 previewState = 'BACK';
             } else {
-                // Setup awal kalau trick belum dimulai
                 if (effectMode === 'ai-to-real') {
                     galleryOriginal.src = isAiReady && generatedImageData ? generatedImageData : originalImageData; 
                     galleryGenerated.src = originalImageData; 
@@ -904,7 +909,6 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
-        // --- Logic Native Share ---
         async function shareImageToDevice(dataUrl) {
             if (!dataUrl) return;
             if (navigator.vibrate) navigator.vibrate(50);
@@ -936,7 +940,6 @@
             }
         }
 
-        // --- Logic Black Screen ---
         function startBlackScreenTimer() {
             if (!isBlackScreenEnabled) return;
             clearTimeout(blackScreenTimer);
@@ -950,7 +953,6 @@
             blackScreenOverlay.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        // --- Logic Gestures ---
         let scale = 1, startScale = 1; 
         let posX = 0, posY = 0, swipeDeltaY = 0; 
         let startDistance = 0, startPanX = 0, startPanY = 0;
@@ -1171,7 +1173,7 @@
                                 originalImageData = null; 
                             }
                             
-                            saveMagicState(); // Simpan state akhir ke local storage
+                            saveMagicState(); // INI YANG BAKAL NGEHAPUS DARI LOCAL STORAGE KARENA isTrickCompleted = true
                             startBlackScreenTimer(); 
                         }
                     }, transitionType === 'fade' ? 1500 : 50);
@@ -1184,7 +1186,6 @@
             if (previewState === 'FRONT') {
                 if (isAiReady && triggerMethod === 'tap') startTransition();
             } else if (previewState === 'FADING') {
-                // Force nampilin final langsung (skip fade)
                 previewState = 'BACK';
                 isTrickCompleted = true; 
                 
@@ -1202,7 +1203,7 @@
                     originalImageData = null;
                 }
                 
-                saveMagicState(); // Simpan state akhir ke local storage
+                saveMagicState(); // INI JUGA BAKAL NGEHAPUS DARI LOCAL STORAGE
                 startBlackScreenTimer(); 
             } 
         }
