@@ -209,6 +209,14 @@
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Transition</h3>
                     
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">Effect Mode</label>
+                        <select id="setting-effect-mode" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
+                            <option value="real-to-ai">Real ➔ AI</option>
+                            <option value="ai-to-real">AI ➔ Real</option>
+                        </select>
+                    </div>
+
                     <div class="flex gap-2">
                         <div class="flex-1">
                             <label class="block text-sm text-gray-300 mb-2 font-medium">Trigger</label>
@@ -243,7 +251,7 @@
                     <div class="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
                         <div class="flex-1">
                             <label class="block text-sm text-gray-300 font-medium">Delay before blackout</label>
-                            <span class="text-[10px] text-gray-500">Min 3.0 seconds after AI appears</span>
+                            <span class="text-[10px] text-gray-500">Min 3.0 seconds after effect</span>
                         </div>
                         <input type="number" id="setting-black-screen-delay" class="w-16 bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="3" step="0.5">
                     </div>
@@ -286,7 +294,9 @@
             
             <!-- Zoom Container -->
             <div id="zoom-container" class="relative w-full h-full flex items-center justify-center origin-center">
+                <!-- Back layer (z-index 10) - This is revealed when front fades -->
                 <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
+                <!-- Front layer (z-index 20) - This fades out -->
                 <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
             </div>
         </div>
@@ -350,8 +360,8 @@
         const galleryModal = document.getElementById('gallery-modal');
         const galleryAnimWrapper = document.getElementById('gallery-anim-wrapper');
         const zoomContainer = document.getElementById('zoom-container');
-        const galleryOriginal = document.getElementById('gallery-original');
-        const galleryGenerated = document.getElementById('gallery-generated');
+        const galleryOriginal = document.getElementById('gallery-original'); // Front Layer
+        const galleryGenerated = document.getElementById('gallery-generated'); // Back Layer
         const previewLoadingDot = document.getElementById('preview-loading-dot');
         const blackScreenOverlay = document.getElementById('black-screen-overlay');
         
@@ -362,6 +372,7 @@
         const settingGoogleApiKey = document.getElementById('setting-google-api-key');
         const settingGoogleModel = document.getElementById('setting-google-model');
         
+        const settingEffectMode = document.getElementById('setting-effect-mode');
         const settingPrompt = document.getElementById('setting-prompt');
         const settingDelay = document.getElementById('setting-delay');
         const settingTransition = document.getElementById('setting-transition');
@@ -380,13 +391,15 @@
         let generatedImageData = null;
         let isAiReady = false;
         
-        // State preview: 'ORIGINAL', 'FADING', 'AI'
-        let previewState = 'ORIGINAL'; 
-        let blackScreenTimer = null; // Timer untuk black screen
+        // State preview: 'FRONT', 'FADING', 'BACK'
+        // FRONT = galleryOriginal (z-index 20) is visible.
+        // BACK = galleryOriginal faded out, galleryGenerated (z-index 10) is revealed.
+        let previewState = 'FRONT'; 
+        let blackScreenTimer = null;
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
-        // --- Migrasi data lama (jika ada) ke memori Google API ---
+        // --- Migrasi data lama ---
         let oldGeminiKey = localStorage.getItem('gemini_api_key');
         if (oldGeminiKey && !localStorage.getItem('google_api_key')) {
             localStorage.setItem('google_api_key', oldGeminiKey);
@@ -402,6 +415,7 @@
         let googleApiKey = localStorage.getItem('google_api_key') || "";
         let googleAiModel = localStorage.getItem('google_ai_model') || "gemini-3.1-flash-image-preview";
         
+        let effectMode = localStorage.getItem('effect_mode') || 'real-to-ai';
         let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades";
         
         let storedDelay = localStorage.getItem('fade_delay');
@@ -422,6 +436,7 @@
         settingGoogleApiKey.value = googleApiKey;
         settingGoogleModel.value = googleAiModel;
         
+        settingEffectMode.value = effectMode;
         settingPrompt.value = aiPromptStr;
         settingDelay.value = fadeDelaySec;
         settingTransition.value = transitionType;
@@ -544,6 +559,7 @@
             googleApiKey = settingGoogleApiKey.value.trim();
             googleAiModel = settingGoogleModel.value.trim() || "gemini-3.1-flash-image-preview";
             
+            effectMode = settingEffectMode.value;
             aiPromptStr = settingPrompt.value.trim() || "change this card to two of spades";
             triggerMethod = settingTrigger.value;
             
@@ -561,6 +577,7 @@
             localStorage.setItem('google_api_key', googleApiKey);
             localStorage.setItem('google_ai_model', googleAiModel);
             
+            localStorage.setItem('effect_mode', effectMode);
             localStorage.setItem('ai_prompt', aiPromptStr);
             localStorage.setItem('fade_delay', fadeDelaySec);
             localStorage.setItem('transition_type', transitionType);
@@ -613,13 +630,23 @@
                 
                 if(imgBase) {
                     generatedImageData = `data:image/png;base64,${imgBase}`;
-                    // Pastikan generatedImageData dimuat dulu di img tag sebelum men-hide dot indicator
                     const tempImg = new Image();
                     tempImg.onload = () => {
                         isAiReady = true;
                         flashAutoText.classList.add('opacity-0');
-                        previewLoadingDot.classList.add('opacity-0'); // Indikator hilang = siap share
-                        galleryGenerated.src = generatedImageData;
+                        previewLoadingDot.classList.add('opacity-0');
+                        
+                        // Setup untuk mode AI to Real
+                        if (effectMode === 'ai-to-real') {
+                            galleryThumbnail.src = generatedImageData;
+                            if (!galleryModal.classList.contains('hidden')) {
+                                galleryOriginal.src = generatedImageData; // Update Front Layer ke AI
+                            }
+                        } else {
+                            if (!galleryModal.classList.contains('hidden')) {
+                                galleryGenerated.src = generatedImageData; // Update Back Layer ke AI
+                            }
+                        }
                     };
                     tempImg.src = generatedImageData;
                 }
@@ -648,9 +675,11 @@
                 ctx.restore();
                 
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
+                
+                // Set Thumbnail ke foto normal dulu, supaya tidak terlihat janggal pas baru difoto
                 galleryThumbnail.src = originalImageData;
                 
-                previewState = 'ORIGINAL';
+                previewState = 'FRONT';
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '1';
                 
@@ -659,17 +688,23 @@
             }
         });
 
-        // Event Listener untuk BUKA Gallery Animasi "Shape Shift"
+        // BUKA Gallery Animasi "Shape Shift"
         galleryBtn.addEventListener('click', () => {
             if (!originalImageData) return;
             
             stopCamera();
-            resetBlackScreenState(); // Pastikan black screen hilang saat buka
+            resetBlackScreenState(); 
             
-            galleryOriginal.src = originalImageData;
-            galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
+            // Atur urutan layer (Front/Back) berdasarkan Effect Mode
+            if (effectMode === 'ai-to-real') {
+                galleryOriginal.src = isAiReady ? generatedImageData : originalImageData; // Front
+                galleryGenerated.src = originalImageData; // Back
+            } else {
+                galleryOriginal.src = originalImageData; // Front
+                galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; // Back
+            }
             
-            if (previewState === 'AI') {
+            if (previewState === 'BACK') {
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
             } else {
@@ -677,7 +712,7 @@
                 galleryOriginal.style.opacity = '1';
             }
             
-            if (!isAiReady && previewState !== 'AI') {
+            if (!isAiReady && previewState !== 'BACK') {
                 previewLoadingDot.classList.remove('opacity-0');
             } else {
                 previewLoadingDot.classList.add('opacity-0');
@@ -756,7 +791,6 @@
             clearTimeout(blackScreenTimer);
             blackScreenTimer = setTimeout(() => {
                 blackScreenOverlay.classList.remove('opacity-0', 'pointer-events-none');
-                // Mengubah pointer-events menjadi otomatis menutupi layar tanpa mengganggu propagasi event ke root
             }, blackScreenDelaySec * 1000);
         }
 
@@ -777,7 +811,6 @@
         let pointers = [];
         let maxPointers = 0; 
         
-        // Variables for Double Tap
         let lastTapTime = 0;
 
         function updateZoomTransform() {
@@ -882,9 +915,7 @@
                 
                 // Deteksi murni TAP
                 const isTapGesture = absDeltaY < 10 && absDeltaX < 10;
-                // Deteksi Swipe Down (tutup gallery)
                 const isSwipeDown = deltaY > 80 && deltaY > absDeltaX * 1.5;
-                // Deteksi Swipe Up (opsi trigger)
                 const isSwipeUp = deltaY < -80 && absDeltaY > absDeltaX * 1.5;
 
                 // --- DOUBLE TAP LOGIC ---
@@ -895,7 +926,14 @@
                     
                     if (tapLength < 350 && tapLength > 0) {
                         isDoubleTap = true;
-                        const currentDataUrl = (previewState === 'AI' && generatedImageData) ? generatedImageData : originalImageData;
+                        let currentDataUrl;
+                        // Tentukan URL data berdasarkan State dan Mode
+                        if (previewState === 'BACK') {
+                            currentDataUrl = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                        } else {
+                            currentDataUrl = (effectMode === 'ai-to-real') ? (isAiReady ? generatedImageData : originalImageData) : originalImageData;
+                        }
+                        
                         shareImageToDevice(currentDataUrl);
                         lastTapTime = 0;
                     } else {
@@ -911,7 +949,7 @@
                         swipeDeltaY = 0;
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
-                        if (previewState === 'ORIGINAL' && isAiReady) {
+                        if (previewState === 'FRONT' && isAiReady) {
                             startTransition();
                         }
                     } else if (!isDoubleTap) {
@@ -928,7 +966,7 @@
                     }
                 } else if (maxPointers === 1 && scale > 1) {
                     if (isSwipeUp && triggerMethod === 'swipe-up') {
-                        if (previewState === 'ORIGINAL' && isAiReady) {
+                        if (previewState === 'FRONT' && isAiReady) {
                             startTransition();
                         }
                     } else if (!isDoubleTap && isTapGesture) {
@@ -961,7 +999,7 @@
         function closeGallery() {
             swipeDeltaY = 0;
             updateZoomTransform();
-            resetBlackScreenState(); // Reset timer dan overlay
+            resetBlackScreenState(); 
             
             const btnRect = galleryBtn.getBoundingClientRect();
             
@@ -989,13 +1027,16 @@
             setTimeout(() => {
                 if (previewState === 'FADING') {
                     galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
-                    galleryOriginal.style.opacity = '0';
+                    galleryOriginal.style.opacity = '0'; // Front fade out
                     
                     setTimeout(() => {
-                        if (previewState === 'FADING' || previewState === 'AI') {
-                            previewState = 'AI';
-                            galleryThumbnail.src = generatedImageData;
-                            startBlackScreenTimer(); // Mulai timer stealth
+                        if (previewState === 'FADING' || previewState === 'BACK') {
+                            previewState = 'BACK';
+                            
+                            // Update thumbnail pasca transisi
+                            galleryThumbnail.src = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                            
+                            startBlackScreenTimer(); 
                         }
                     }, transitionType === 'fade' ? 1500 : 50);
                 }
@@ -1004,16 +1045,18 @@
 
         // --- Fungsi Handle Tap ---
         function handleGalleryTap() {
-            if (previewState === 'ORIGINAL') {
+            if (previewState === 'FRONT') {
                 if (isAiReady && triggerMethod === 'tap') {
                     startTransition();
                 }
             } else if (previewState === 'FADING') {
-                previewState = 'AI';
+                previewState = 'BACK';
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
-                galleryThumbnail.src = generatedImageData;
-                startBlackScreenTimer(); // Mulai timer stealth
+                
+                galleryThumbnail.src = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                
+                startBlackScreenTimer(); 
             } 
         }
 
