@@ -76,7 +76,7 @@
     <!-- Flash Overlay -->
     <div id="flash-overlay" class="fixed inset-0 bg-black z-20 opacity-0 pointer-events-none"></div>
 
-    <!-- Notification Banner (Fallback) -->
+    <!-- Notification Banner -->
     <div id="notification-banner" class="fixed top-[-100px] left-1/2 -translate-x-1/2 bg-[#1c1c1d]/90 text-white px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500 ease-out z-[150] pointer-events-none border border-white/10 w-max max-w-[90%]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -110,18 +110,14 @@
 
     <!-- Bottom Controls Container -->
     <div class="fixed bottom-0 left-0 w-full z-10 flex flex-col pointer-events-none">
-        
         <!-- Floating Elements Area -->
         <div class="w-full flex flex-col items-center pb-4">
-            
             <!-- Zoom Controls -->
             <div class="flex items-center justify-center gap-5 mb-5 pointer-events-auto">
                 <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">0.5</span>
-                
                 <div class="w-9 h-9 bg-[#1c1c1d]/80 rounded-full flex items-center justify-center border border-white/10 cursor-pointer shadow-lg backdrop-blur-md">
                     <span class="text-[#ffd60a] text-[13px] font-semibold">1x</span>
                 </div>
-                
                 <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">2</span>
                 <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">4</span>
                 <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">8</span>
@@ -133,12 +129,10 @@
                     <div class="w-[56px] h-[56px] bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"></div>
                 </div>
             </div>
-
         </div>
 
         <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
-            
             <!-- Gallery -->
             <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg relative">
                 <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
@@ -162,9 +156,7 @@
                     <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
                 </svg>
             </div>
-
         </div>
-
     </div>
 
     <!-- AI Settings Modal -->
@@ -191,29 +183,15 @@
             <!-- Modal Body (Scrollable) -->
             <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-7">
                 
-                <!-- Section: Configuration -->
+                <!-- Section 1: Routine Mode & Prompts -->
                 <div class="space-y-4">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Configuration</h3>
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Routine & Prompt</h3>
                     
+                    <!-- Effect Mode Selection -->
                     <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
-                        <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
-                        <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
-                    </div>
-                </div>
-
-                <!-- Section: Transition -->
-                <div class="space-y-4 pt-5 border-t border-white/5">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">Transition</h3>
-                    
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">Effect Mode</label>
                         <select id="setting-effect-mode" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
-                            <option value="real-to-ai">Real ➔ AI</option>
-                            <option value="ai-to-real">AI ➔ Real</option>
+                            <option value="real-to-ai">Mode: Real ➔ AI</option>
+                            <option value="ai-to-real">Mode: AI ➔ Real</option>
                         </select>
                     </div>
 
@@ -230,7 +208,7 @@
                             Take Photo
                         </button>
                         
-                        <!-- Preview Box (Hidden by default until photo is taken) -->
+                        <!-- Preview Box -->
                         <div id="prep-preview-container" class="hidden mt-3 relative w-full h-32 bg-black/40 rounded-lg border border-white/10 overflow-hidden flex flex-col items-center justify-center shadow-inner">
                             <img id="prep-preview-img" src="" class="absolute inset-0 w-full h-full object-cover opacity-60">
                             <div class="relative z-10 flex flex-col items-center justify-center bg-black/60 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/5">
@@ -239,6 +217,46 @@
                         </div>
                     </div>
 
+                    <!-- Dynamic Prompt Inputs -->
+                    <div class="pt-2">
+                        <div class="flex justify-between items-center pl-1 mb-2">
+                            <h3 id="prompt-section-title" class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest">AI Prompt</h3>
+                        </div>
+                        
+                        <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your magic prompt here..."></textarea>
+                        
+                        <button id="save-prompt-btn" onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            Save as Draft
+                        </button>
+
+                        <div class="pt-4">
+                            <label class="block text-sm text-gray-400 mb-3 font-medium pl-1">Saved Prompts</label>
+                            <div id="prompt-list" class="flex flex-col gap-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                <!-- List draft prompt rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: API Configuration -->
+                <div class="space-y-4 pt-5 border-t border-white/5">
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">API Configuration</h3>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
+                        <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
+                        <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                    </div>
+                </div>
+
+                <!-- Section 3: Transition Settings -->
+                <div class="space-y-4 pt-5 border-t border-white/5">
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-3">Transition Settings</h3>
+                    
                     <div class="flex gap-2">
                         <div class="flex-1">
                             <label class="block text-sm text-gray-300 mb-2 font-medium">Trigger</label>
@@ -261,7 +279,7 @@
                     </div>
                 </div>
 
-                <!-- Section: Black Screen -->
+                <!-- Section 4: Black Screen -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <div class="flex justify-between items-center pl-1">
                         <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
@@ -278,32 +296,15 @@
                         <input type="number" id="setting-black-screen-delay" class="w-16 bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="3" step="0.5">
                     </div>
                 </div>
-
-                <!-- Section: Prompts -->
-                <div class="space-y-4 pt-5 border-t border-white/5">
-                    <div class="flex justify-between items-center pl-1">
-                        <h3 class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest">AI Prompt</h3>
-                    </div>
-                    
-                    <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed" placeholder="Type your magic prompt here..."></textarea>
-                    
-                    <button onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        Save as Draft
-                    </button>
-
-                    <div class="pt-2">
-                        <label class="block text-sm text-gray-400 mb-3 font-medium pl-1">Saved Prompts</label>
-                        <div id="prompt-list" class="flex flex-col gap-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                            <!-- List draft prompt rendered here -->
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Modal Footer -->
-            <div class="p-6 border-t border-white/5 shrink-0 bg-black/20">
+            <!-- Modal Footer with Save & Tutorial Buttons -->
+            <div class="p-6 border-t border-white/5 shrink-0 bg-black/20 flex flex-col gap-3">
                 <button onclick="closeSettings()" class="w-full bg-[#ffd60a] hover:bg-[#e6c100] text-black font-bold rounded-xl py-3.5 active:scale-[0.98] transition-all touch-manipulation shadow-[0_4px_15px_rgba(255,214,10,0.3)]">Save & Close</button>
+                <a href="tutorial.html" class="w-full flex items-center justify-center gap-2 bg-transparent text-gray-400 hover:text-white font-medium py-2.5 rounded-xl active:scale-[0.98] transition-all text-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Tutorial & Tips
+                </a>
             </div>
         </div>
     </div>
@@ -311,59 +312,29 @@
     <!-- Fullscreen Gallery Modal dengan Shape Shift Logic -->
     <div id="gallery-modal" class="fixed inset-0 z-[100] hidden items-center justify-center cursor-pointer touch-none bg-transparent">
         
-        <!-- Animasi Shape-Shift berjalan di div ini -->
         <div id="gallery-anim-wrapper" class="absolute bg-black overflow-hidden flex items-center justify-center origin-center">
-            
-            <!-- Zoom Container -->
             <div id="zoom-container" class="relative w-full h-full flex items-center justify-center origin-center">
-                <!-- Back layer (z-index 10) -->
                 <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
-                <!-- Front layer (z-index 20) -->
                 <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
             </div>
         </div>
 
-        <!-- Black Screen Overlay untuk fitur Stealth -->
         <div id="black-screen-overlay" class="absolute inset-0 bg-black z-[45] opacity-0 pointer-events-none transition-opacity duration-500"></div>
-
-        <!-- Loading Dot Indicator -->
         <div id="preview-loading-dot" class="absolute bottom-12 right-8 w-1 h-1 bg-gray-400/80 rounded-full z-50 opacity-0 transition-opacity duration-300 pointer-events-none shadow-[0_0_2px_rgba(0,0,0,0.5)]"></div>
     </div>
 
     <canvas id="photo-canvas" class="hidden"></canvas>
 
     <script>
-        // --- PWA Initialization ---
         function initPWA() {
             const manifestContent = {
                 name: "Lucid", short_name: "Lucid", start_url: ".", display: "standalone",
                 background_color: "#000000", theme_color: "#000000",
                 icons: [{ src: "icon-512.png", sizes: "512x512", type: "image/png" }]
             };
-
             const manifestBlob = new Blob([JSON.stringify(manifestContent)], {type: 'application/json'});
             const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(manifestBlob);
             document.head.appendChild(link);
-
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                const CACHE_NAME = 'ai-magic-cam-v1';
-                self.addEventListener('install', e => self.skipWaiting());
-                self.addEventListener('activate', e => self.clients.claim());
-                self.addEventListener('fetch', e => {
-                    if (e.request.method !== 'GET') return;
-                    e.respondWith(
-                        fetch(e.request).then(res => {
-                            const resClone = res.clone();
-                            caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
-                            return res;
-                        }).catch(() => caches.match(e.request))
-                    );
-                });
-                `;
-                const swBlob = new Blob([swCode], {type: 'application/javascript'});
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(e => console.error("SW Error:", e));
-            }
         }
         initPWA();
 
@@ -390,22 +361,22 @@
         // Settings Elements
         const settingsModal = document.getElementById('settings-modal');
         const settingsContainer = document.getElementById('settings-container');
-        
         const settingGoogleApiKey = document.getElementById('setting-google-api-key');
         const settingGoogleModel = document.getElementById('setting-google-model');
-        
         const settingEffectMode = document.getElementById('setting-effect-mode');
         const aiToRealPrepSection = document.getElementById('ai-to-real-prep-section');
+        
+        const promptSectionTitle = document.getElementById('prompt-section-title');
         const settingPrompt = document.getElementById('setting-prompt');
+        const savePromptBtn = document.getElementById('save-prompt-btn');
+        const promptListContainer = document.getElementById('prompt-list');
+        
         const settingDelay = document.getElementById('setting-delay');
         const settingTransition = document.getElementById('setting-transition');
         const settingTrigger = document.getElementById('setting-trigger');
-        const promptListContainer = document.getElementById('prompt-list');
-        
         const settingBlackScreen = document.getElementById('setting-black-screen');
         const settingBlackScreenDelay = document.getElementById('setting-black-screen-delay');
 
-        // Prep Preview Elements
         const prepPreviewContainer = document.getElementById('prep-preview-container');
         const prepPreviewImg = document.getElementById('prep-preview-img');
         const prepAiStatus = document.getElementById('prep-ai-status');
@@ -419,63 +390,92 @@
         let generatedImageData = null;
         let isAiReady = false;
         
-        // Routine Prep State
         let isPrepModeActive = false;
-        
-        // State preview: 'FRONT', 'FADING', 'BACK'
         let previewState = 'FRONT'; 
         let blackScreenTimer = null;
         
-        // Default random thumbnail
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
-        // --- Load State ---
+        // --- Data Migration & Init Load ---
         let googleApiKey = localStorage.getItem('google_api_key') || "";
         let googleAiModel = localStorage.getItem('google_ai_model') || "gemini-3.1-flash-image-preview";
-        
         let effectMode = localStorage.getItem('effect_mode') || 'real-to-ai';
-        let aiPromptStr = localStorage.getItem('ai_prompt') || "change this card to two of spades";
         
+        // Separate prompts logic
+        let promptRealToAi = localStorage.getItem('prompt_real_to_ai') || localStorage.getItem('ai_prompt') || "change this card to two of spades";
+        let promptAiToReal = localStorage.getItem('prompt_ai_to_real') || "empty table, nothing on it";
+
         let storedDelay = localStorage.getItem('fade_delay');
         let fadeDelaySec = storedDelay !== null ? parseFloat(storedDelay) : 2;
         if (isNaN(fadeDelaySec)) fadeDelaySec = 2;
 
         let transitionType = localStorage.getItem('transition_type') || "fade";
         let triggerMethod = localStorage.getItem('trigger_method') || "tap";
-        let savedPrompts = JSON.parse(localStorage.getItem('saved_prompts') || '[]');
 
-        // Load Black Screen State
         let isBlackScreenEnabled = localStorage.getItem('black_screen_enabled') === 'true';
         let storedBSDelay = localStorage.getItem('black_screen_delay');
         let blackScreenDelaySec = storedBSDelay !== null ? parseFloat(storedBSDelay) : 3;
         if (isNaN(blackScreenDelaySec) || blackScreenDelaySec < 3) blackScreenDelaySec = 3;
 
-        // Initialize Settings Modal Values
+        // Migrasi saved prompts (lama string -> baru object {text, mode})
+        let rawSaved = localStorage.getItem('saved_prompts');
+        let savedPrompts = [];
+        if (rawSaved) {
+            try {
+                let parsed = JSON.parse(rawSaved);
+                if (parsed.length > 0 && typeof parsed[0] === 'string') {
+                    savedPrompts = parsed.map(p => ({ text: p, mode: 'real-to-ai' }));
+                    localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
+                } else {
+                    savedPrompts = parsed;
+                }
+            } catch(e) { savedPrompts = []; }
+        }
+
+        // Apply to Settings Inputs
         settingGoogleApiKey.value = googleApiKey;
         settingGoogleModel.value = googleAiModel;
-        
         settingEffectMode.value = effectMode;
-        settingPrompt.value = aiPromptStr;
         settingDelay.value = fadeDelaySec;
         settingTransition.value = transitionType;
         settingTrigger.value = triggerMethod;
-        
         settingBlackScreen.checked = isBlackScreenEnabled;
         settingBlackScreenDelay.value = blackScreenDelaySec;
 
-        // Sync visibility of Prep Section based on Initial Load
-        updatePrepSectionVisibility();
-
-        // --- Event Listener for Effect Mode Change ---
-        settingEffectMode.addEventListener('change', updatePrepSectionVisibility);
-
-        function updatePrepSectionVisibility() {
-            if (settingEffectMode.value === 'ai-to-real') {
-                aiToRealPrepSection.classList.remove('hidden');
+        // Sync Text Input when typing
+        settingPrompt.addEventListener('input', (e) => {
+            if (settingEffectMode.value === 'real-to-ai') {
+                promptRealToAi = e.target.value;
             } else {
-                aiToRealPrepSection.classList.add('hidden');
+                promptAiToReal = e.target.value;
+            }
+        });
+
+        function updateModeUI() {
+            const isAiToReal = settingEffectMode.value === 'ai-to-real';
+            
+            // Toggle Prep Section Visibility
+            if (isAiToReal) aiToRealPrepSection.classList.remove('hidden');
+            else aiToRealPrepSection.classList.add('hidden');
+
+            // Dynamic Prompt Textarea Styling
+            if (isAiToReal) {
+                promptSectionTitle.textContent = 'AI PROMPT (AI ➔ REAL)';
+                promptSectionTitle.className = 'text-[11px] font-bold text-blue-400 uppercase tracking-widest';
+                settingPrompt.value = promptAiToReal;
+                settingPrompt.classList.replace('focus:border-[#ffd60a]', 'focus:border-blue-400');
+                savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30';
+            } else {
+                promptSectionTitle.textContent = 'AI PROMPT (REAL ➔ AI)';
+                promptSectionTitle.className = 'text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest';
+                settingPrompt.value = promptRealToAi;
+                settingPrompt.classList.replace('focus:border-blue-400', 'focus:border-[#ffd60a]');
+                savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10';
             }
         }
+
+        settingEffectMode.addEventListener('change', updateModeUI);
+        updateModeUI();
 
         // --- Camera Functions ---
         async function initCamera() {
@@ -513,14 +513,13 @@
         function showNotification(message) {
             notificationText.textContent = message;
             notificationBanner.style.top = '40px'; 
-            
             clearTimeout(notificationTimeout);
             notificationTimeout = setTimeout(() => {
                 notificationBanner.style.top = '-100px'; 
             }, 2500);
         }
 
-        // --- Settings & Prep Mode Functions ---
+        // --- Prompts Rendering & Management ---
         function renderPromptList() {
             promptListContainer.innerHTML = '';
             if (savedPrompts.length === 0) {
@@ -532,38 +531,49 @@
                 return;
             }
 
-            savedPrompts.forEach((prompt, index) => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 hover:bg-black/60 transition-colors group';
+            savedPrompts.forEach((item, index) => {
+                const isBlue = item.mode === 'ai-to-real';
+                
+                const divItem = document.createElement('div');
+                divItem.className = isBlue 
+                    ? 'flex items-center justify-between bg-blue-900/10 border border-blue-500/20 rounded-xl p-3 hover:bg-blue-900/30 transition-colors group'
+                    : 'flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 hover:bg-black/60 transition-colors group';
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = 'text-xs text-gray-300 truncate pr-3 cursor-pointer flex-1 leading-relaxed';
-                textSpan.textContent = prompt;
-                textSpan.onclick = () => { settingPrompt.value = prompt; };
+                textSpan.className = `text-xs truncate pr-3 cursor-pointer flex-1 leading-relaxed ${isBlue ? 'text-blue-300' : 'text-gray-300'}`;
+                textSpan.textContent = item.text;
+                
+                // Switch mode and load prompt when clicked
+                textSpan.onclick = () => { 
+                    settingEffectMode.value = item.mode;
+                    if (item.mode === 'real-to-ai') {
+                        promptRealToAi = item.text;
+                    } else {
+                        promptAiToReal = item.text;
+                    }
+                    updateModeUI();
+                };
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-all';
-                deleteBtn.innerHTML = `
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                `;
+                deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     deletePrompt(index);
                 };
 
-                item.appendChild(textSpan);
-                item.appendChild(deleteBtn);
-                promptListContainer.appendChild(item);
+                divItem.appendChild(textSpan);
+                divItem.appendChild(deleteBtn);
+                promptListContainer.appendChild(divItem);
             });
         }
 
         function saveCurrentPrompt() {
             const currentVal = settingPrompt.value.trim();
-            if (currentVal && !savedPrompts.includes(currentVal)) {
-                savedPrompts.unshift(currentVal);
+            const currentMode = settingEffectMode.value;
+            
+            if (currentVal && !savedPrompts.some(p => p.text === currentVal && p.mode === currentMode)) {
+                savedPrompts.unshift({ text: currentVal, mode: currentMode });
                 localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
                 renderPromptList();
             }
@@ -577,7 +587,7 @@
 
         function openSettings() {
             renderPromptList();
-            updatePrepSectionVisibility(); // Pastikan state visibilitas up to date
+            updateModeUI(); 
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
             
@@ -593,29 +603,32 @@
             googleAiModel = settingGoogleModel.value.trim() || "gemini-3.1-flash-image-preview";
             
             effectMode = settingEffectMode.value;
-            aiPromptStr = settingPrompt.value.trim() || "change this card to two of spades";
             triggerMethod = settingTrigger.value;
+            
+            // Sync active textarea logic just in case
+            if (effectMode === 'real-to-ai') {
+                promptRealToAi = settingPrompt.value.trim();
+            } else {
+                promptAiToReal = settingPrompt.value.trim();
+            }
             
             let parsedDelay = parseFloat(settingDelay.value);
             fadeDelaySec = isNaN(parsedDelay) ? 2 : Math.max(0, parsedDelay);
-            
             transitionType = settingTransition.value;
             
-            // Simpan state Black Screen
             isBlackScreenEnabled = settingBlackScreen.checked;
             let parsedBSDelay = parseFloat(settingBlackScreenDelay.value);
             blackScreenDelaySec = (isNaN(parsedBSDelay) || parsedBSDelay < 3) ? 3 : parsedBSDelay;
 
-            // Simpan semua ke LocalStorage
+            // Save state
             localStorage.setItem('google_api_key', googleApiKey);
             localStorage.setItem('google_ai_model', googleAiModel);
-            
             localStorage.setItem('effect_mode', effectMode);
-            localStorage.setItem('ai_prompt', aiPromptStr);
+            localStorage.setItem('prompt_real_to_ai', promptRealToAi);
+            localStorage.setItem('prompt_ai_to_real', promptAiToReal);
             localStorage.setItem('fade_delay', fadeDelaySec);
             localStorage.setItem('transition_type', transitionType);
             localStorage.setItem('trigger_method', triggerMethod);
-            
             localStorage.setItem('black_screen_enabled', isBlackScreenEnabled);
             localStorage.setItem('black_screen_delay', blackScreenDelaySec);
 
@@ -629,15 +642,14 @@
             }, 300);
         }
 
-        // --- Masuk ke Mode Prep Rahasia ---
         function enterPrepMode() {
-            // Update variabel global dulu biar gak perlu pencet save & close
+            // Update and Sync variables
             googleApiKey = settingGoogleApiKey.value.trim();
             googleAiModel = settingGoogleModel.value.trim();
-            aiPromptStr = settingPrompt.value.trim();
             effectMode = settingEffectMode.value;
+            if (effectMode === 'real-to-ai') promptRealToAi = settingPrompt.value.trim();
+            else promptAiToReal = settingPrompt.value.trim();
 
-            // Sembunyikan settings sementara
             settingsModal.classList.add('opacity-0');
             settingsContainer.classList.remove('scale-100');
             settingsContainer.classList.add('scale-95');
@@ -664,8 +676,10 @@
                 previewLoadingDot.classList.remove('opacity-0');
             }
 
+            // Pilih prompt text sesuai dengan global effectMode
+            const currentPromptStr = (effectMode === 'real-to-ai') ? promptRealToAi : promptAiToReal;
             const hiddenInstruction = ", photo realistic, keep other details exactly the same, use standard face design for playing card";
-            const finalPrompt = aiPromptStr + hiddenInstruction;
+            const finalPrompt = currentPromptStr + hiddenInstruction;
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${activeKey}`;
@@ -691,19 +705,17 @@
                         flashAutoText.classList.add('opacity-0');
                         previewLoadingDot.classList.add('opacity-0');
                         
-                        // Update UI Settings Preview kalau lagi buka (Prep Mode)
                         prepAiStatus.textContent = 'Ready on Standby ✅';
                         prepAiStatus.classList.replace('text-[#ffd60a]', 'text-green-400');
                         
-                        // Setup thumbnail sesuai mode
                         if (effectMode === 'ai-to-real') {
                             galleryThumbnail.src = generatedImageData;
                             if (!galleryModal.classList.contains('hidden')) {
-                                galleryOriginal.src = generatedImageData; // Front
+                                galleryOriginal.src = generatedImageData; 
                             }
                         } else {
                             if (!galleryModal.classList.contains('hidden')) {
-                                galleryGenerated.src = generatedImageData; // Back
+                                galleryGenerated.src = generatedImageData; 
                             }
                         }
                     };
@@ -721,12 +733,10 @@
         // --- Event Listeners: Shutter ---
         shutterBtn.addEventListener('click', () => {
             if (videoElement.readyState >= 2) {
-                // Flash animasi
                 flashOverlay.classList.remove('shutter-flash');
                 void flashOverlay.offsetWidth;
                 flashOverlay.classList.add('shutter-flash');
 
-                // Capture image
                 const maxWidth = 800;
                 let w = videoElement.videoWidth, h = videoElement.videoHeight;
                 if (w > maxWidth) { h = Math.floor((h * maxWidth) / w); w = maxWidth; }
@@ -743,10 +753,8 @@
                     // M O D E   P R E P
                     isPrepModeActive = false; 
                     
-                    // Set Thumbnail sementara biar kelihatan ada isinya
                     galleryThumbnail.src = originalImageData; 
                     
-                    // Otomatis balik buka Settings Modal
                     settingsModal.classList.remove('hidden');
                     settingsModal.classList.add('flex');
                     setTimeout(() => {
@@ -755,14 +763,12 @@
                         settingsContainer.classList.add('scale-100');
                     }, 50);
 
-                    // Update UI Preview di dalam settings
                     prepPreviewContainer.classList.remove('hidden');
                     prepPreviewImg.src = originalImageData;
                     prepAiStatus.textContent = 'Processing AI...';
                     prepAiStatus.classList.remove('text-green-400', 'text-red-400');
                     prepAiStatus.classList.add('text-[#ffd60a]');
 
-                    // Trigger AI
                     generateAiImage(originalImageData.split(',')[1]);
 
                 } else {
@@ -778,20 +784,19 @@
             }
         });
 
-        // BUKA Gallery Animasi "Shape Shift" (Eksekusi Trik)
+        // BUKA Gallery Animasi "Shape Shift"
         galleryBtn.addEventListener('click', () => {
             if (!originalImageData) return;
             
             stopCamera();
             resetBlackScreenState(); 
             
-            // Atur urutan layer (Front/Back) berdasarkan Effect Mode
             if (effectMode === 'ai-to-real') {
-                galleryOriginal.src = isAiReady ? generatedImageData : originalImageData; // Front
-                galleryGenerated.src = originalImageData; // Back
+                galleryOriginal.src = isAiReady ? generatedImageData : originalImageData; 
+                galleryGenerated.src = originalImageData; 
             } else {
-                galleryOriginal.src = originalImageData; // Front
-                galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; // Back
+                galleryOriginal.src = originalImageData; 
+                galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
             }
             
             if (previewState === 'BACK') {
@@ -838,7 +843,6 @@
         // --- Logic Native Share ---
         async function shareImageToDevice(dataUrl) {
             if (!dataUrl) return;
-
             if (navigator.vibrate) navigator.vibrate(50);
 
             try {
@@ -851,11 +855,7 @@
                 const file = new File([blob], filename, { type: 'image/jpeg' });
 
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Lucid',
-                    });
-                    
+                    await navigator.share({ files: [file], title: 'Lucid' });
                     window.location.href = 'photos-redirect://';
                 } else {
                     const link = document.createElement('a');
@@ -865,10 +865,7 @@
                     link.click();
                     document.body.removeChild(link);
                     showNotification("Foto tersimpan di perangkat");
-                    
-                    setTimeout(() => {
-                        window.location.href = 'photos-redirect://';
-                    }, 800);
+                    setTimeout(() => { window.location.href = 'photos-redirect://'; }, 800);
                 }
             } catch (error) {
                 console.error("Share failed/cancelled:", error);
@@ -889,18 +886,13 @@
             blackScreenOverlay.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        // --- Logic Gestures (Tap, Zoom, Swipe, dan Double Tap) ---
-        let scale = 1;
-        let startScale = 1; 
-        let posX = 0, posY = 0;
-        let swipeDeltaY = 0; 
-        let startDistance = 0;
-        let startPanX = 0, startPanY = 0;
+        // --- Logic Gestures ---
+        let scale = 1, startScale = 1; 
+        let posX = 0, posY = 0, swipeDeltaY = 0; 
+        let startDistance = 0, startPanX = 0, startPanY = 0;
         let isPointerDown = false;
         let pointerStart = {x: 0, y: 0};
-        let pointers = [];
-        let maxPointers = 0; 
-        
+        let pointers = [], maxPointers = 0; 
         let lastTapTime = 0;
 
         function updateZoomTransform() {
@@ -917,23 +909,18 @@
         galleryModal.addEventListener('pointerdown', (e) => {
             e.preventDefault(); 
             pointers.push(e);
-            
             if (pointers.length > maxPointers) maxPointers = pointers.length;
 
             if (pointers.length === 1) {
                 isPointerDown = true;
                 pointerStart = {x: e.clientX, y: e.clientY};
                 swipeDeltaY = 0;
-                
                 if (scale > 1) {
                     startPanX = e.clientX - posX;
                     startPanY = e.clientY - posY;
                 }
             } else if (pointers.length === 2) {
-                startDistance = Math.hypot(
-                    pointers[0].clientX - pointers[1].clientX,
-                    pointers[0].clientY - pointers[1].clientY
-                );
+                startDistance = Math.hypot(pointers[0].clientX - pointers[1].clientX, pointers[0].clientY - pointers[1].clientY);
                 startScale = scale; 
             }
         });
@@ -943,11 +930,7 @@
             if (index !== -1) pointers[index] = e;
 
             if (pointers.length === 2) {
-                const currentDistance = Math.hypot(
-                    pointers[0].clientX - pointers[1].clientX,
-                    pointers[0].clientY - pointers[1].clientY
-                );
-                
+                const currentDistance = Math.hypot(pointers[0].clientX - pointers[1].clientX, pointers[0].clientY - pointers[1].clientY);
                 if (startDistance > 0) {
                     const zoomDelta = currentDistance / startDistance;
                     scale = Math.max(1, startScale * zoomDelta);
@@ -959,19 +942,15 @@
                 if (scale > 1) {
                     let newPosX = e.clientX - startPanX;
                     let newPosY = e.clientY - startPanY;
-
                     const maxPosX = (window.innerWidth * scale) / 2;
                     const maxPosY = (window.innerHeight * scale) / 2;
-
                     posX = Math.max(-maxPosX, Math.min(maxPosX, newPosX));
                     posY = Math.max(-maxPosY, Math.min(maxPosY, newPosY));
-
                     updateZoomTransform();
                 } else if (maxPointers === 1 && scale === 1) {
                     const deltaY = e.clientY - pointerStart.y;
                     const absDeltaX = Math.abs(e.clientX - pointerStart.x);
-                    
-                    if (deltaY > 0 && deltaY > absDeltaX) { // SWIPE DOWN (Visual Feedback Close)
+                    if (deltaY > 0 && deltaY > absDeltaX) { 
                         swipeDeltaY = deltaY * 0.4; 
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = `rgba(0,0,0,${Math.max(0.4, 1 - (deltaY / 400))})`;
@@ -1003,12 +982,10 @@
                 const absDeltaY = Math.abs(deltaY);
                 const absDeltaX = Math.abs(deltaX);
                 
-                // Deteksi murni TAP
                 const isTapGesture = absDeltaY < 10 && absDeltaX < 10;
                 const isSwipeDown = deltaY > 80 && deltaY > absDeltaX * 1.5;
                 const isSwipeUp = deltaY < -80 && absDeltaY > absDeltaX * 1.5;
 
-                // --- DOUBLE TAP LOGIC ---
                 let isDoubleTap = false;
                 if (isTapGesture && maxPointers === 1) {
                     const currentTime = new Date().getTime();
@@ -1017,13 +994,11 @@
                     if (tapLength < 350 && tapLength > 0) {
                         isDoubleTap = true;
                         let currentDataUrl;
-                        // Tentukan URL data berdasarkan State dan Mode
                         if (previewState === 'BACK') {
                             currentDataUrl = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
                         } else {
                             currentDataUrl = (effectMode === 'ai-to-real') ? (isAiReady ? generatedImageData : originalImageData) : originalImageData;
                         }
-                        
                         shareImageToDevice(currentDataUrl);
                         lastTapTime = 0;
                     } else {
@@ -1039,14 +1014,11 @@
                         swipeDeltaY = 0;
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
-                        if (previewState === 'FRONT' && isAiReady) {
-                            startTransition();
-                        }
+                        if (previewState === 'FRONT' && isAiReady) startTransition();
                     } else if (!isDoubleTap) {
                         swipeDeltaY = 0;
                         updateZoomTransform();
                         galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
-                        
                         setTimeout(() => {
                             if (new Date().getTime() - lastTapTime >= 350 && lastTapTime !== 0 && isTapGesture) {
                                 handleGalleryTap();
@@ -1056,9 +1028,7 @@
                     }
                 } else if (maxPointers === 1 && scale > 1) {
                     if (isSwipeUp && triggerMethod === 'swipe-up') {
-                        if (previewState === 'FRONT' && isAiReady) {
-                            startTransition();
-                        }
+                        if (previewState === 'FRONT' && isAiReady) startTransition();
                     } else if (!isDoubleTap && isTapGesture) {
                         setTimeout(() => {
                             if (new Date().getTime() - lastTapTime >= 350 && lastTapTime !== 0) {
@@ -1072,10 +1042,7 @@
                     updateZoomTransform();
                 }
 
-                if (scale <= 1.05) {
-                    resetZoom();
-                }
-                
+                if (scale <= 1.05) resetZoom();
                 maxPointers = 0; 
             }
         };
@@ -1084,15 +1051,12 @@
         galleryModal.addEventListener('pointercancel', handlePointerUp);
         galleryModal.addEventListener('pointerleave', handlePointerUp);
 
-
-        // --- Fungsi Tutup Gallery ---
         function closeGallery() {
             swipeDeltaY = 0;
             updateZoomTransform();
             resetBlackScreenState(); 
             
             const btnRect = galleryBtn.getBoundingClientRect();
-            
             galleryAnimWrapper.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
             galleryModal.style.transition = 'background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
             
@@ -1111,21 +1075,16 @@
             }, 400); 
         }
 
-        // --- Fungsi Eksekusi Transisi ---
         function startTransition() {
             previewState = 'FADING';
             setTimeout(() => {
                 if (previewState === 'FADING') {
                     galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
-                    galleryOriginal.style.opacity = '0'; // Front fade out
-                    
+                    galleryOriginal.style.opacity = '0'; 
                     setTimeout(() => {
                         if (previewState === 'FADING' || previewState === 'BACK') {
                             previewState = 'BACK';
-                            
-                            // Update thumbnail pasca transisi
                             galleryThumbnail.src = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
-                            
                             startBlackScreenTimer(); 
                         }
                     }, transitionType === 'fade' ? 1500 : 50);
@@ -1133,19 +1092,14 @@
             }, fadeDelaySec * 1000);
         }
 
-        // --- Fungsi Handle Tap ---
         function handleGalleryTap() {
             if (previewState === 'FRONT') {
-                if (isAiReady && triggerMethod === 'tap') {
-                    startTransition();
-                }
+                if (isAiReady && triggerMethod === 'tap') startTransition();
             } else if (previewState === 'FADING') {
                 previewState = 'BACK';
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
-                
                 galleryThumbnail.src = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
-                
                 startBlackScreenTimer(); 
             } 
         }
