@@ -6,6 +6,11 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- App Icons -->
+    <link rel="icon" type="image/png" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    
     <title>Lucid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -210,8 +215,7 @@
                         
                         <!-- Preview Box -->
                         <div id="prep-preview-container" class="hidden mt-3 relative w-full h-32 bg-black/40 rounded-lg border border-white/10 overflow-hidden flex flex-col items-center justify-center shadow-inner">
-                            <img id="prep-preview-img" src="" class="absolute inset-0 w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/40 z-0"></div> <!-- overlay pelapis biar text kebaca -->
+                            <img id="prep-preview-img" src="" class="absolute inset-0 w-full h-full object-cover opacity-60">
                             <div class="relative z-10 flex flex-col items-center justify-center bg-black/60 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/5">
                                 <span id="prep-ai-status" class="text-[11px] font-bold text-[#ffd60a] tracking-wide">Processing AI...</span>
                             </div>
@@ -805,14 +809,15 @@
                 ctx.drawImage(videoElement, 0, 0, w, h);
                 ctx.restore();
                 
-                // Reset State
+                // Reset State Full and Save
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
                 generatedImageData = null;
                 isAiReady = false;
                 isTrickCompleted = false;
                 previewState = 'FRONT';
-                saveMagicState(); // Save ke local storage
+                saveMagicState();
                 
+                // Ekstra bersihin memori canvas DOM
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (isPrepModeActive) {
@@ -829,7 +834,7 @@
                     }, 50);
 
                     prepPreviewContainer.classList.remove('hidden');
-                    prepPreviewImg.src = originalImageData;
+                    prepPreviewImg.src = originalImageData; // Init Preview Asli
                     prepAiStatus.textContent = 'Processing AI...';
                     prepAiStatus.classList.remove('text-green-400', 'text-red-400');
                     prepAiStatus.classList.add('text-[#ffd60a]');
@@ -847,20 +852,23 @@
             }
         });
 
-        // BUKA Gallery
+        // BUKA Gallery Animasi "Shape Shift"
         galleryBtn.addEventListener('click', () => {
+            // Cek apa galeri masih nampilin picsum (belum ada jepretan)
             if (galleryThumbnail.src.includes('picsum')) return;
             
             stopCamera();
             resetBlackScreenState(); 
             
             if (isTrickCompleted) {
+                // Kalo trick udah kelar, cuma tampilin gambar FINAL, ngga mikirin yang lain
                 let finalImage = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
-                galleryOriginal.removeAttribute('src'); 
-                galleryGenerated.src = finalImage || originalImageData; 
+                galleryOriginal.removeAttribute('src'); // Bersihin memori layer depan
+                galleryGenerated.src = finalImage || originalImageData; // safe fallback
                 galleryOriginal.style.opacity = '0';
                 previewState = 'BACK';
             } else {
+                // Setup awal kalau trick belum dimulai
                 if (effectMode === 'ai-to-real') {
                     galleryOriginal.src = isAiReady && generatedImageData ? generatedImageData : originalImageData; 
                     galleryGenerated.src = originalImageData; 
@@ -909,6 +917,7 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
+        // --- Logic Native Share ---
         async function shareImageToDevice(dataUrl) {
             if (!dataUrl) return;
             if (navigator.vibrate) navigator.vibrate(50);
@@ -940,6 +949,7 @@
             }
         }
 
+        // --- Logic Black Screen ---
         function startBlackScreenTimer() {
             if (!isBlackScreenEnabled) return;
             clearTimeout(blackScreenTimer);
@@ -953,6 +963,7 @@
             blackScreenOverlay.classList.add('opacity-0', 'pointer-events-none');
         }
 
+        // --- Logic Gestures ---
         let scale = 1, startScale = 1; 
         let posX = 0, posY = 0, swipeDeltaY = 0; 
         let startDistance = 0, startPanX = 0, startPanY = 0;
@@ -1186,6 +1197,7 @@
             if (previewState === 'FRONT') {
                 if (isAiReady && triggerMethod === 'tap') startTransition();
             } else if (previewState === 'FADING') {
+                // Force nampilin final langsung (skip fade)
                 previewState = 'BACK';
                 isTrickCompleted = true; 
                 
