@@ -391,6 +391,7 @@
         let isAiReady = false;
         
         let isPrepModeActive = false;
+        let isTrickCompleted = false; // Penanda kalau trik sudah kelar (untuk Memory Cleanup)
         let previewState = 'FRONT'; 
         let blackScreenTimer = null;
         
@@ -473,7 +474,7 @@
                 savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10';
             }
 
-            renderPromptList(); // Memastikan list list otomatis berubah saat dropdown diganti
+            renderPromptList(); 
         }
 
         settingEffectMode.addEventListener('change', updateModeUI);
@@ -564,7 +565,6 @@
                 
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
-                    // Cari index di array aslinya biar nggak salah hapus
                     const actualIndex = savedPrompts.findIndex(p => p.text === item.text && p.mode === item.mode);
                     if(actualIndex > -1) deletePrompt(actualIndex);
                 };
@@ -593,7 +593,7 @@
         }
 
         function openSettings() {
-            updateModeUI(); // renderPromptList sudah ada di dalam sini
+            updateModeUI(); 
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
             
@@ -611,7 +611,6 @@
             effectMode = settingEffectMode.value;
             triggerMethod = settingTrigger.value;
             
-            // Sync active textarea logic just in case
             if (effectMode === 'real-to-ai') {
                 promptRealToAi = settingPrompt.value.trim();
             } else {
@@ -626,7 +625,6 @@
             let parsedBSDelay = parseFloat(settingBlackScreenDelay.value);
             blackScreenDelaySec = (isNaN(parsedBSDelay) || parsedBSDelay < 3) ? 3 : parsedBSDelay;
 
-            // Save state
             localStorage.setItem('google_api_key', googleApiKey);
             localStorage.setItem('google_ai_model', googleAiModel);
             localStorage.setItem('effect_mode', effectMode);
@@ -649,7 +647,6 @@
         }
 
         function enterPrepMode() {
-            // Update and Sync variables
             googleApiKey = settingGoogleApiKey.value.trim();
             googleAiModel = settingGoogleModel.value.trim();
             effectMode = settingEffectMode.value;
@@ -669,7 +666,6 @@
             }, 300);
         }
 
-        // --- AI Generation ---
         async function generateAiImage(base64Data) {
             const activeKey = googleApiKey;
             const activeModel = googleAiModel;
@@ -682,7 +678,6 @@
                 previewLoadingDot.classList.remove('opacity-0');
             }
 
-            // Pilih prompt text sesuai dengan global effectMode
             const currentPromptStr = (effectMode === 'real-to-ai') ? promptRealToAi : promptAiToReal;
             const hiddenInstruction = ", photo realistic, keep other details exactly the same, use standard face design for playing card";
             const finalPrompt = currentPromptStr + hiddenInstruction;
@@ -714,14 +709,16 @@
                         prepAiStatus.textContent = 'Ready on Standby ✅';
                         prepAiStatus.classList.replace('text-[#ffd60a]', 'text-green-400');
                         
-                        if (effectMode === 'ai-to-real') {
-                            galleryThumbnail.src = generatedImageData;
-                            if (!galleryModal.classList.contains('hidden')) {
-                                galleryOriginal.src = generatedImageData; 
-                            }
-                        } else {
-                            if (!galleryModal.classList.contains('hidden')) {
-                                galleryGenerated.src = generatedImageData; 
+                        if (!isTrickCompleted) {
+                            if (effectMode === 'ai-to-real') {
+                                galleryThumbnail.src = generatedImageData;
+                                if (!galleryModal.classList.contains('hidden')) {
+                                    galleryOriginal.src = generatedImageData; 
+                                }
+                            } else {
+                                if (!galleryModal.classList.contains('hidden')) {
+                                    galleryGenerated.src = generatedImageData; 
+                                }
                             }
                         }
                     };
@@ -753,10 +750,17 @@
                 ctx.drawImage(videoElement, 0, 0, w, h);
                 ctx.restore();
                 
+                // Reset State
                 originalImageData = canvas.toDataURL('image/jpeg', 0.6);
+                generatedImageData = null;
+                isAiReady = false;
+                isTrickCompleted = false;
+                previewState = 'FRONT';
+                
+                // Ekstra bersihin memori canvas DOM
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (isPrepModeActive) {
-                    // M O D E   P R E P
                     isPrepModeActive = false; 
                     
                     galleryThumbnail.src = originalImageData; 
@@ -778,9 +782,7 @@
                     generateAiImage(originalImageData.split(',')[1]);
 
                 } else {
-                    // M O D E   N O R M A L
                     galleryThumbnail.src = originalImageData;
-                    previewState = 'FRONT';
                     galleryOriginal.style.transition = 'none';
                     galleryOriginal.style.opacity = '1';
                     
@@ -792,25 +794,34 @@
 
         // BUKA Gallery Animasi "Shape Shift"
         galleryBtn.addEventListener('click', () => {
-            if (!originalImageData) return;
+            // Cek apa galeri masih nampilin picsum (belum ada jepretan)
+            if (galleryThumbnail.src.includes('picsum')) return;
             
             stopCamera();
             resetBlackScreenState(); 
             
-            if (effectMode === 'ai-to-real') {
-                galleryOriginal.src = isAiReady ? generatedImageData : originalImageData; 
-                galleryGenerated.src = originalImageData; 
-            } else {
-                galleryOriginal.src = originalImageData; 
-                galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
-            }
-            
-            if (previewState === 'BACK') {
-                galleryOriginal.style.transition = 'none';
+            if (isTrickCompleted) {
+                // Kalo trick udah kelar, cuma tampilin gambar FINAL, ngga mikirin yang lain
+                let finalImage = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                galleryOriginal.removeAttribute('src'); // Bersihin memori layer depan
+                galleryGenerated.src = finalImage; 
                 galleryOriginal.style.opacity = '0';
+                previewState = 'BACK';
             } else {
-                galleryOriginal.style.transition = 'none';
-                galleryOriginal.style.opacity = '1';
+                // Setup awal kalau trick belum dimulai
+                if (effectMode === 'ai-to-real') {
+                    galleryOriginal.src = isAiReady ? generatedImageData : originalImageData; 
+                    galleryGenerated.src = originalImageData; 
+                } else {
+                    galleryOriginal.src = originalImageData; 
+                    galleryGenerated.src = isAiReady ? generatedImageData : originalImageData; 
+                }
+                
+                if (previewState === 'BACK') {
+                    galleryOriginal.style.opacity = '0';
+                } else {
+                    galleryOriginal.style.opacity = '1';
+                }
             }
             
             if (!isAiReady && previewState !== 'BACK') {
@@ -999,12 +1010,18 @@
                     
                     if (tapLength < 350 && tapLength > 0) {
                         isDoubleTap = true;
+                        
                         let currentDataUrl;
-                        if (previewState === 'BACK') {
+                        if (isTrickCompleted) {
                             currentDataUrl = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
                         } else {
-                            currentDataUrl = (effectMode === 'ai-to-real') ? (isAiReady ? generatedImageData : originalImageData) : originalImageData;
+                            if (previewState === 'BACK') {
+                                currentDataUrl = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                            } else {
+                                currentDataUrl = (effectMode === 'ai-to-real') ? (isAiReady ? generatedImageData : originalImageData) : originalImageData;
+                            }
                         }
+                        
                         shareImageToDevice(currentDataUrl);
                         lastTapTime = 0;
                     } else {
@@ -1081,16 +1098,30 @@
             }, 400); 
         }
 
+        // --- Fungsi Eksekusi Transisi (Dilengkapi Memory Clean Up) ---
         function startTransition() {
             previewState = 'FADING';
             setTimeout(() => {
                 if (previewState === 'FADING') {
                     galleryOriginal.style.transition = transitionType === 'fade' ? 'opacity 1.5s ease-in-out' : 'none';
                     galleryOriginal.style.opacity = '0'; 
+                    
                     setTimeout(() => {
                         if (previewState === 'FADING' || previewState === 'BACK') {
                             previewState = 'BACK';
-                            galleryThumbnail.src = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                            isTrickCompleted = true; // Tandai trick kelar
+                            
+                            let finalImage = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                            galleryThumbnail.src = finalImage;
+                            
+                            // -- MAGIC CLEAN UP MEMORY --
+                            galleryOriginal.removeAttribute('src'); // Bersihin memori DOM (lapisan depan udah gak kepake)
+                            if (effectMode === 'ai-to-real') {
+                                generatedImageData = null; // Buang base64 AI dari RAM
+                            } else {
+                                originalImageData = null; // Buang base64 Asli dari RAM
+                            }
+                            
                             startBlackScreenTimer(); 
                         }
                     }, transitionType === 'fade' ? 1500 : 50);
@@ -1098,14 +1129,29 @@
             }, fadeDelaySec * 1000);
         }
 
+        // --- Fungsi Handle Tap (Dilengkapi Memory Clean Up) ---
         function handleGalleryTap() {
             if (previewState === 'FRONT') {
                 if (isAiReady && triggerMethod === 'tap') startTransition();
             } else if (previewState === 'FADING') {
+                // Force nampilin final langsung (skip fade)
                 previewState = 'BACK';
+                isTrickCompleted = true; // Tandai trick kelar
+                
                 galleryOriginal.style.transition = 'none';
                 galleryOriginal.style.opacity = '0';
-                galleryThumbnail.src = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                
+                let finalImage = (effectMode === 'ai-to-real') ? originalImageData : generatedImageData;
+                galleryThumbnail.src = finalImage;
+                
+                // -- MAGIC CLEAN UP MEMORY --
+                galleryOriginal.removeAttribute('src');
+                if (effectMode === 'ai-to-real') {
+                    generatedImageData = null;
+                } else {
+                    originalImageData = null;
+                }
+                
                 startBlackScreenTimer(); 
             } 
         }
