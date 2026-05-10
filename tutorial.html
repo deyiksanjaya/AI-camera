@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Lucid - Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --glass-bg: rgba(20, 20, 22, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-gold: #ffd60a;
+            --accent-blue: #3b82f6;
+        }
+
+        body {
+            background-color: #000;
+            font-family: 'Inter', -apple-system, sans-serif;
+            overscroll-behavior-y: none;
+            color: #ededed;
+        }
+
+        /* Hide Scrollbar but keep functionality */
+        ::-webkit-scrollbar { display: none; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animated Background Gradients */
+        .bg-glow {
+            position: fixed;
+            width: 150vw;
+            height: 150vw;
+            top: -25vw;
+            left: -25vw;
+            background: radial-gradient(circle at 50% 0%, rgba(255, 214, 10, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        /* Smooth Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Horizontal Carousel */
+        .snap-x-mandatory {
+            scroll-snap-type: x mandatory;
+        }
+        .snap-center {
+            scroll-snap-align: center;
+        }
+
+        /* Tab Transition */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col">
+
+    <div class="bg-glow"></div>
+
+    <!-- Floating Top Nav -->
+    <div class="fixed top-0 left-0 w-full z-50 pt-safe px-5 py-4 flex justify-between items-center bg-gradient-to-b from-black/90 to-transparent backdrop-blur-[2px]">
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+            <span class="text-[10px] font-bold tracking-[0.2em] text-white/50 uppercase">Secured Doc</span>
+        </div>
+        <p class="text-[10px] font-mono text-white/30">V.1.0</p>
+    </div>
+
+    <!-- Main Scrollable Area -->
+    <div class="flex-1 overflow-y-auto pb-32 pt-20 px-4 scroll-smooth" id="scroll-container">
+        
+        <div class="max-w-lg mx-auto space-y-10">
+            
+            <!-- Hero Title -->
+            <div class="reveal active text-center space-y-3 mt-4">
+                <h1 class="text-4xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-white/40">LUCID</h1>
+                <p class="text-sm font-medium text-gray-400 max-w-[280px] mx-auto leading-relaxed">
+                    Covert visual alteration utility.<br/>Disguised as a native camera.
+                </p>
+                <p class="text-[12px] text-gray-500 mt-2 px-4 leading-relaxed">
+                    To access the secret control panel (Settings), simply tap the yellow <strong class="text-[#ffd60a]">PHOTO</strong> text located at the bottom center of the camera interface.
+                </p>
+            </div>
+
+            <!-- Onyx Acknowledgment (Premium Card) -->
+            <div class="reveal glass-panel rounded-[2rem] p-6 relative overflow-hidden group">
+                <!-- Gold Glow effect inside card -->
+                <div class="absolute -top-20 -right-20 w-40 h-40 bg-[#ffd60a]/10 blur-[50px] rounded-full transition-transform duration-700 group-hover:scale-150"></div>
+                
+                <div class="relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ffd60a]/10 border border-[#ffd60a]/20 mb-4">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#ffd60a"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        <span class="text-[10px] font-bold text-[#ffd60a] tracking-widest uppercase">Inspiration</span>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold text-white mb-3">Inspired by Onyx</h2>
+                    <p class="text-[13px] text-gray-300 leading-relaxed mb-5">
+                        Before diving into mechanics, we must credit the pioneer. Lucid is heavily inspired by <strong>Onyx</strong>, a phenomenal application by legendary digital magic creator <strong>Marc Kerstein</strong>.
+                    </p>
+                    
+                    <div class="border-l-2 border-[#ffd60a]/50 pl-4 py-1 mb-6">
+                        <p class="text-[12px] text-gray-400 italic leading-relaxed">
+                            "Onyx uses cutting-edge AI to seamlessly alter photos in real-time right on the spectator's own device... remotely morph shadows, change signed cards, or reveal thought-of words in a genuine photo *after* it's been taken."
+                        </p>
+                    </div>
+
+                    <p class="text-[12px] text-gray-300 mb-5">To perform at the absolute highest professional level utilizing the spectator's own device, we highly recommend supporting the original creator.</p>
+
+                    <div class="flex flex-col gap-3">
+                        <a href="https://apps.apple.com/app/id6756542102" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white text-black font-semibold rounded-xl py-3.5 active:scale-95 transition-transform text-[13px] shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M12.03 6.95c-.02.02-.05.02-.08.02-.13-1.51.58-3 1.58-3.95.89-.86 2.24-1.44 3.47-1.44.02-.02.04-.02.06-.02.16 1.58-.6 3.12-1.6 4.07-.86.84-2.2 1.4-3.43 1.32"/></svg>
+                            Get Onyx on App Store
+                        </a>
+                        <a href="https://marckerstein.com" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white/5 text-white font-medium rounded-xl py-3.5 border border-white/10 hover:bg-white/10 active:scale-95 transition-all text-[13px]">
+                            Visit Marc Kerstein's Website
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration & Prompts -->
+            <div class="reveal space-y-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">System Setup</span>
+                    <div class="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                </div>
+                
+                <div class="glass-panel p-6 rounded-2xl space-y-6">
+                    <!-- API Setup -->
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                            API Configuration
+                        </h3>
+                        <p class="text-[13px] text-gray-400 leading-relaxed mb-3">Lucid relies on Google's Gemini API. Follow these steps to connect your app:</p>
+                        <ol class="text-[13px] text-gray-300 space-y-2 list-decimal pl-4">
+                            <li class="pl-1">Visit <code class="bg-white/10 px-1 rounded text-blue-300">aistudio.google.com</code> and sign in.</li>
+                            <li class="pl-1">Go to <strong>"Get API Key"</strong> and create a new key.</li>
+                            <li class="pl-1">Open Lucid's settings, and paste the key.</li>
+                            <li class="pl-1">Set the model to <code class="bg-white/10 px-1 rounded text-gray-300">gemini-3.1-flash-image-preview</code>.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Prompt Management -->
+                    <div class="border-t border-white/10 pt-5">
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            Prompt Management
+                        </h3>
+                        <p class="text-[13px] text-gray-400 leading-relaxed mb-3 text-justify">
+                            Lucid utilizes a dual-memory system. Prompts for <strong>Real ➔ AI</strong> and <strong>AI ➔ Real</strong> are saved entirely separate from each other to prevent accidental cross-contamination.
+                        </p>
+                        <ul class="text-[13px] text-gray-300 space-y-3 list-disc pl-4 marker:text-gray-600">
+                            <li class="pl-1"><strong>Color Coding:</strong> Yellow UI indicates you are editing a Real ➔ AI prompt. Blue UI indicates an AI ➔ Real prompt.</li>
+                            <li class="pl-1"><strong>Saving Drafts:</strong> Click "Save as Draft" to store frequent prompts. The list below will filter based on the active mode.</li>
+                            <li class="pl-1"><strong>Invisible Directives:</strong> Lucid automatically appends hidden instructions (e.g., <em>"photo realistic, keep other details exactly the same"</em>) to ensure the AI output looks like an unedited photograph.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Transition Dynamics -->
+                    <div class="border-t border-white/10 pt-5">
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                            Transition Dynamics
+                        </h3>
+                        <ul class="text-[13px] text-gray-300 space-y-3 list-disc pl-4 marker:text-gray-600">
+                            <li class="pl-1"><strong>Trigger:</strong> Choose <strong>Tap</strong> for a standard touch, or <strong>Swipe Up</strong> to mimic a magical gesture/wave over the device.</li>
+                            <li class="pl-1"><strong>Effect:</strong> Choose <strong>Fade</strong> for a slow, morphing change (ideal for mentalism), or <strong>Instant</strong> for a snappy, jarring change (ideal for visual magic).</li>
+                            <li class="pl-1"><strong>Delay:</strong> Set a timer (in seconds) after the trigger is activated. This allows you to hand the phone to a spectator *after* triggering, letting the magic happen in their hands.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Execution Modes -->
+            <div class="reveal space-y-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Performance</span>
+                    <div class="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Execution Modes</h2>
+
+                <!-- Tabs -->
+                <div class="flex p-1 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm relative">
+                    <!-- Dynamic Tab Indicator (Handled by JS) -->
+                    <div id="tab-indicator" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-white/10 rounded-lg transition-transform duration-300 ease-out border border-white/10 shadow-sm"></div>
+                    
+                    <button onclick="switchTab('real-to-ai', 0)" id="btn-real-ai" class="flex-1 py-2.5 text-[13px] font-semibold text-white relative z-10 transition-colors">Real ➔ AI</button>
+                    <button onclick="switchTab('ai-to-real', 1)" id="btn-ai-real" class="flex-1 py-2.5 text-[13px] font-semibold text-gray-500 relative z-10 transition-colors">AI ➔ Real</button>
+                </div>
+
+                <!-- Tab Content: Real to AI -->
+                <div id="content-real-ai" class="tab-content active glass-panel p-6 rounded-2xl">
+                    <div class="w-10 h-10 rounded-full bg-[#ffd60a]/20 flex items-center justify-center mb-4 border border-[#ffd60a]/30">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2"><path d="M2 12h4l3-9 5 18 3-9h5"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">The Reality Shift</h3>
+                    <p class="text-[13px] text-gray-400 leading-relaxed mb-5">
+                        Capture a photograph live during your performance. The spectator sees their actual reality in the gallery thumbnail. Upon your trigger, the subject visually morphs to match your hidden prompt.
+                    </p>
+                    <div class="space-y-3">
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-white/10 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-[#ffd60a]">1</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Select <strong>Real ➔ AI</strong> in Settings.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-white/10 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-[#ffd60a]">2</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Capture the photo using the main shutter button.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-white/10 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-[#ffd60a]">3</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Tap the gallery thumbnail to display the original photo.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-white/10 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-[#ffd60a]">4</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Execute your chosen gesture (Tap/Swipe) to initiate the visual shift.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: AI to Real -->
+                <div id="content-ai-real" class="tab-content glass-panel p-6 rounded-2xl relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 blur-[40px] rounded-full"></div>
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mb-4 border border-blue-500/30 relative z-10">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1 relative z-10">Memory Alteration</h3>
+                    <p class="text-[13px] text-gray-400 leading-relaxed mb-5 relative z-10">
+                        Designed for false-memory patter (e.g., <em>"I took a photo of this earlier..."</em>). Pre-capture backstage. The spectator views an altered reality first. Trigger to snap back to the actual present.
+                    </p>
+                    <div class="space-y-3 relative z-10">
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-blue-500/20 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-blue-300">1</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Select <strong>AI ➔ Real</strong> in Settings.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-blue-500/20 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-blue-300">2</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Tap <span class="text-blue-400 font-semibold">Take Photo</span> inside the Secret Prep section.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-blue-500/20 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-blue-300">3</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Wait for the <span class="text-green-400 font-medium">Ready on Standby</span> status.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-blue-500/20 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-blue-300">4</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">During performance, open the gallery. The altered (AI) image displays first.</p>
+                        </div>
+                        <div class="flex gap-3 items-start">
+                            <span class="w-5 h-5 rounded-md bg-blue-500/20 text-[11px] flex items-center justify-center font-mono shrink-0 mt-0.5 text-blue-300">5</span>
+                            <p class="text-[13px] text-gray-300 leading-relaxed">Trigger the transition to restore the true photograph.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horizontal Scroll Features (Gestures) -->
+            <div class="reveal space-y-4 pt-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Gallery Controls</span>
+                    <div class="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                    <span class="text-[10px] text-white/30 animate-pulse">Swipe &rarr;</span>
+                </div>
+                
+                <div class="flex overflow-x-auto snap-x-mandatory gap-4 pb-4 -mx-4 px-4 custom-scrollbar">
+                    
+                    <div class="snap-center shrink-0 w-[85%] glass-panel rounded-2xl p-5 flex flex-col justify-between h-[180px]">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 20v-8"></path><path d="M8 16l4 4 4-4"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-[15px] font-bold text-white mb-1">Trigger</h4>
+                            <p class="text-[12px] text-gray-400 leading-relaxed">Single Tap or Swipe Up anywhere on the fullscreen image to initiate the visual shift.</p>
+                        </div>
+                    </div>
+
+                    <div class="snap-center shrink-0 w-[85%] glass-panel rounded-2xl p-5 flex flex-col justify-between h-[180px]">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-[15px] font-bold text-white mb-1">Save to Roll</h4>
+                            <p class="text-[12px] text-gray-400 leading-relaxed">Double Tap rapidly on the gallery image to silently save the final altered photograph to your device.</p>
+                        </div>
+                    </div>
+
+                    <div class="snap-center shrink-0 w-[85%] glass-panel rounded-2xl p-5 flex flex-col justify-between h-[180px]">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-[15px] font-bold text-white mb-1">Safe Zoom</h4>
+                            <p class="text-[12px] text-gray-400 leading-relaxed">Custom pinch-to-zoom ensures spectators can intuitively pan around without triggering native UI.</p>
+                        </div>
+                    </div>
+
+                    <div class="snap-center shrink-0 w-[85%] glass-panel rounded-2xl p-5 flex flex-col justify-between h-[180px]">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 mb-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><polyline points="17 11 12 16 7 11"></polyline><line x1="12" y1="16" x2="12" y2="8"></line></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-[15px] font-bold text-white mb-1">Dismiss Gallery</h4>
+                            <p class="text-[12px] text-gray-400 leading-relaxed">Swipe Down heavily while zoomed out to dismiss the gallery, perfectly mimicking OS behavior.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accordions for Technicals -->
+            <div class="reveal space-y-4 pt-2">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Technicals & Security</span>
+                    <div class="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                </div>
+
+                <!-- Indicators -->
+                <details class="group glass-panel rounded-2xl border-white/10 overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+                    <summary class="flex items-center justify-between p-5 cursor-pointer font-semibold text-[14px]">
+                        <div class="flex items-center gap-3">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            Covert Status Indicators
+                        </div>
+                        <span class="transition-transform group-open:rotate-180 text-gray-500">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </span>
+                    </summary>
+                    <div class="p-5 pt-0 text-[13px] text-gray-400 leading-relaxed border-t border-white/5 bg-white/[0.02]">
+                        <p class="mb-4">Knowing when the AI has finished processing without alerting the spectator is crucial. Lucid employs two virtually invisible indicators:</p>
+                        <ul class="space-y-4">
+                            <li class="flex gap-3">
+                                <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-0.5"><span class="text-[10px] font-bold text-[#ffd60a]">A</span></div>
+                                <div>
+                                    <strong class="text-white block mb-1">The Flash 'A' Indicator</strong>
+                                    During the main camera view, a tiny 'A' (Auto) text next to the flash icon appears. Once generation is complete, the 'A' quietly vanishes.
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-0.5"><div class="w-1.5 h-1.5 bg-gray-400 rounded-full"></div></div>
+                                <div>
+                                    <strong class="text-white block mb-1">The Micro-Dot</strong>
+                                    If you open the gallery prematurely, a microscopic, semi-transparent dot appears in the lower-right area of the screen. When it disappears, it's safe to transition.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </details>
+
+                <!-- Security -->
+                <details class="group glass-panel rounded-2xl border-white/10 overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+                    <summary class="flex items-center justify-between p-5 cursor-pointer font-semibold text-[14px]">
+                        <div class="flex items-center gap-3">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-400"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            Memory Clean-Up & Stealth
+                        </div>
+                        <span class="transition-transform group-open:rotate-180 text-gray-500">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </span>
+                    </summary>
+                    <div class="p-5 pt-0 text-[13px] text-gray-400 leading-relaxed border-t border-white/5 bg-white/[0.02] space-y-4 text-justify">
+                        <p>
+                            <strong class="text-white">Auto Wipe (Memory Clean-up):</strong> Upon completion of the visual transition, the pre-transition image (the "evidence") is permanently purged from local storage and RAM. If a spectator handles the device post-effect, they will only find the final, clean image. Closing and reopening the app will not resurrect the original image.
+                        </p>
+                        <p>
+                            <strong class="text-white">State Persistence:</strong> Pre-captured images in <em>AI ➔ Real</em> mode are cached securely. You can lock your phone or casually switch apps; the setup remains intact and ready in the background until the trick is formally executed.
+                        </p>
+                        <p>
+                            <strong class="text-white">Blackout Mode:</strong> When enabled, the screen automatically fades to pitch black after a configured delay post-transition. This forces the device into a "sleep-like" state, allowing you to casually pocket the device without exposing the web browser interface or risking accidental touches.
+                        </p>
+                    </div>
+                </details>
+
+            </div>
+
+            <!-- Footer Note -->
+            <div class="pt-8 pb-6 text-center">
+                <p class="text-[10px] text-gray-600 font-mono tracking-widest">LUCID UTILITY // FOR PROFESSIONAL USE ONLY</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Floating Action Button (Close) -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <a href="index.html" class="flex items-center gap-2 bg-white text-black px-6 py-3.5 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95 transition-all">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            Open Camera
+        </a>
+    </div>
+
+    <script>
+        // Tab Switcher Logic
+        function switchTab(mode, index) {
+            const indicator = document.getElementById('tab-indicator');
+            const btnReal = document.getElementById('btn-real-ai');
+            const btnAi = document.getElementById('btn-ai-real');
+            const contentReal = document.getElementById('content-real-ai');
+            const contentAi = document.getElementById('content-ai-real');
+
+            // Move indicator
+            indicator.style.transform = `translateX(${index * 100}%)`;
+
+            // Update Text Colors
+            if(index === 0) {
+                btnReal.classList.replace('text-gray-500', 'text-white');
+                btnAi.classList.replace('text-white', 'text-gray-500');
+                contentReal.classList.add('active');
+                contentAi.classList.remove('active');
+            } else {
+                btnAi.classList.replace('text-gray-500', 'text-white');
+                btnReal.classList.replace('text-white', 'text-gray-500');
+                contentAi.classList.add('active');
+                contentReal.classList.remove('active');
+            }
+        }
+
+        // Scroll Reveal Animation Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const observerOptions = {
+                root: document.getElementById('scroll-container'),
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal').forEach((el) => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
