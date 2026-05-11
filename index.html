@@ -75,14 +75,14 @@
 </head>
 <body class="h-screen w-screen overflow-hidden text-white select-none bg-black">
 
-    <!-- Login Overlay (Firebase Auth) -->
+    <!-- Login Overlay -->
     <div id="login-overlay" class="fixed inset-0 bg-[#1c1c1d] z-[300] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="flex flex-col items-center justify-center w-full max-w-sm px-6">
             <h1 class="text-4xl font-bold text-white mb-2 tracking-widest flex items-center gap-3">
                 <img src="icon-512.png" alt="Lucid Logo" class="w-10 h-10 rounded-xl shadow-lg object-cover">
                 LUCID
             </h1>
-            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the app.</p>
+            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the magic camera.</p>
             
             <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black px-6 py-4 rounded-xl font-bold active:scale-[0.98] transition-all shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 48 48">
@@ -93,9 +93,16 @@
                 </svg>
                 Continue with Google
             </button>
-            <div id="login-loading" class="mt-5 text-[#ffd60a] text-sm font-medium tracking-wide animate-pulse">Checking login status...</div>
+            <div id="login-loading" class="mt-5 text-[#ffd60a] text-sm font-medium tracking-wide animate-pulse">Checking credentials...</div>
         </div>
     </div>
+
+    <!-- Script Instan untuk Skip Login Screen kalau udah ada cache -->
+    <script>
+        if (localStorage.getItem('lucid_auth_status') === 'true') {
+            document.getElementById('login-overlay').style.display = 'none';
+        }
+    </script>
 
     <!-- Video Stream Fullscreen -->
     <video id="camera-stream" autoplay playsinline muted class="fixed inset-0 w-full h-full object-cover z-0"></video>
@@ -324,8 +331,12 @@
                     </div>
                 </div>
 
-                <!-- Section 5: Account (Logout) -->
+                <!-- Section 5: Account (Logout only, because settings is only reachable if logged in) -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
+                    <div class="flex items-center justify-center gap-2 text-xs text-green-400 bg-green-400/10 py-2.5 rounded-xl border border-green-400/20">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <span id="user-email-display" class="truncate max-w-[250px] font-medium">Verified User</span>
+                    </div>
                     <button id="logout-btn" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-red-500/20">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         Logout Account
@@ -439,7 +450,6 @@
         let googleAiModel = localStorage.getItem('google_ai_model') || "gemini-3.1-flash-image-preview";
         let effectMode = localStorage.getItem('effect_mode') || 'real-to-ai';
         
-        // Separate prompts logic
         let promptRealToAi = localStorage.getItem('prompt_real_to_ai') || localStorage.getItem('ai_prompt') || "change this card to two of spades";
         let promptAiToReal = localStorage.getItem('prompt_ai_to_real') || "empty table, nothing on it";
 
@@ -469,7 +479,6 @@
             } catch(e) { savedPrompts = []; }
         }
 
-        // Apply to Settings Inputs
         settingGoogleApiKey.value = googleApiKey;
         settingGoogleModel.value = googleAiModel;
         settingEffectMode.value = effectMode;
@@ -750,7 +759,11 @@
             const activeKey = googleApiKey;
             const activeModel = googleAiModel;
 
-            if (!activeKey) return;
+            if (!activeKey) {
+                showNotification("⚠️ Please set Google API Key in Settings.");
+                return;
+            }
+
             isAiReady = false;
             saveMagicState(); 
             
@@ -1176,7 +1189,11 @@
             setTimeout(() => {
                 galleryModal.classList.add('hidden');
                 galleryModal.classList.remove('flex');
-                window.initCamera();
+                
+                // Only turn camera back on if no overlay is shown
+                if(document.getElementById('login-overlay').style.display === 'none'){
+                    window.initCamera();
+                }
             }, 400); 
         }
 
@@ -1237,6 +1254,12 @@
             } 
         }
 
+        // Initialize camera instantly on load ONLY if cache says we are logged in
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('lucid_auth_status') === 'true') {
+                window.initCamera();
+            }
+        });
     </script>
 
     <!-- Firebase Auth Logic -->
@@ -1245,17 +1268,16 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // =========================================================================
-        // MASUKIN FIREBASE CONFIG KAMU DI SINI (Ganti tulisan di dalamnya)
-        // Karena ini pure HTML, jangan pake process.env kalau nggak di-build
+        // MASUKIN FIREBASE CONFIG KAMU DI SINI
         // =========================================================================
         const firebaseConfig = {
-  apiKey: "AIzaSyC-0oRlqQ7odJJYXIyaQX_MlAUNcJKk0WU",
-  authDomain: "lucidbyheri.firebaseapp.com",
-  projectId: "lucidbyheri",
-  storageBucket: "lucidbyheri.firebasestorage.app",
-  messagingSenderId: "282347124526",
-  appId: "1:282347124526:web:552c724fae9fc433912cbf"
-};
+            apiKey: "ISI_API_KEY_KAMU",
+            authDomain: "ISI_AUTH_DOMAIN_KAMU",
+            projectId: "ISI_PROJECT_ID_KAMU",
+            storageBucket: "ISI_STORAGE_BUCKET_KAMU",
+            messagingSenderId: "ISI_SENDER_ID_KAMU",
+            appId: "ISI_APP_ID_KAMU"
+        };
 
         let app, auth, provider;
 
@@ -1263,51 +1285,53 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             provider = new GoogleAuthProvider();
-            // Set biar kalau diclose app tetep login
             setPersistence(auth, browserLocalPersistence);
         } catch(e) {
-            console.error("Firebase Initialization Error. Cek config-nya lagi ya:", e);
+            console.error("Firebase Initialization Error:", e);
         }
 
         const loginOverlay = document.getElementById('login-overlay');
         const googleLoginBtn = document.getElementById('google-login-btn');
         const loginLoading = document.getElementById('login-loading');
+        
         const logoutBtn = document.getElementById('logout-btn');
+        const userEmailDisplay = document.getElementById('user-email-display');
 
         if(auth) {
-            // Listener status login
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    // Berhasil masuk
-                    loginLoading.textContent = "Login Successful!";
-                    loginLoading.classList.remove('animate-pulse');
-                    loginLoading.classList.replace('text-[#ffd60a]', 'text-green-400');
+                    // Update Cache 
+                    localStorage.setItem('lucid_auth_status', 'true');
+                    userEmailDisplay.textContent = user.email || 'Verified User';
                     
-                    setTimeout(() => {
-                        loginOverlay.style.opacity = '0';
+                    // Kalau overlay login masih muncul (misal baru aja login), transisikan buat ditutup
+                    if (loginOverlay.style.display !== 'none') {
+                        loginLoading.textContent = "Login Successful!";
+                        loginLoading.classList.remove('animate-pulse');
+                        loginLoading.classList.replace('text-[#ffd60a]', 'text-green-400');
+                        
                         setTimeout(() => {
-                            loginOverlay.classList.add('hidden');
-                            loginOverlay.classList.remove('flex');
-                            
-                            // Nyalain kamera pas udah sukses login & nutup modal
-                            if(typeof window.initCamera === 'function') window.initCamera();
+                            loginOverlay.style.opacity = '0';
+                            setTimeout(() => {
+                                loginOverlay.style.display = 'none';
+                                if(typeof window.initCamera === 'function') window.initCamera();
+                            }, 500);
                         }, 500);
-                    }, 500);
+                    }
                 } else {
-                    // Belum login atau habis logout
-                    loginOverlay.classList.remove('hidden');
-                    loginOverlay.classList.add('flex');
+                    // Kalo blm login, atau token mati/logout di device lain
+                    localStorage.setItem('lucid_auth_status', 'false');
+                    
+                    loginOverlay.style.display = 'flex';
                     setTimeout(() => {
                         loginOverlay.style.opacity = '1';
                     }, 10);
                     loginLoading.textContent = "";
                     
-                    // Matiin kamera biar ga nyala di background
                     if(typeof window.stopCamera === 'function') window.stopCamera();
                 }
             });
 
-            // Action Login Google
             googleLoginBtn.addEventListener('click', async () => {
                 try {
                     googleLoginBtn.disabled = true;
@@ -1329,14 +1353,13 @@
                 }
             });
 
-            // Action Logout (di dalam settings modal)
             if(logoutBtn) {
                 logoutBtn.addEventListener('click', async () => {
                     try {
                         const confirmLogout = confirm("Are you sure you want to logout?");
                         if (confirmLogout) {
                             await signOut(auth);
-                            window.closeSettings(); // Tutup modal settings
+                            window.closeSettings();
                         }
                     } catch(err) {
                         console.error("Logout Error:", err);
