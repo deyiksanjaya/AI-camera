@@ -106,7 +106,7 @@
                 <img src="icon-512.png" alt="Lucid Logo" class="w-10 h-10 rounded-xl shadow-lg object-cover">
                 LUCID
             </h1>
-            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the magic camera.</p>
+            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the app.</p>
             
             <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black px-6 py-4 rounded-xl font-bold active:scale-[0.98] transition-all shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 48 48">
@@ -230,7 +230,7 @@
             <!-- Header & Tabs -->
             <div class="px-6 py-4 flex flex-col gap-4 shrink-0">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-white tracking-wide">Quick Templates</h2>
+                    <h2 class="text-lg font-bold text-white tracking-wide">Prompt Switcher</h2>
                     <button onclick="closeQuickSwitcher()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -285,7 +285,7 @@
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
                 <div class="mb-7">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Routine & Template</h3>
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Modes & Prompt</h3>
                     
                     <!-- Effect Mode Selection -->
                     <div class="mb-4">
@@ -349,7 +349,7 @@
                         </div>
                         
                         <!-- The Prompt -->
-                        <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your magic prompt here..."></textarea>
+                        <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your prompt here..."></textarea>
                         
                         <button id="save-prompt-btn" onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -398,8 +398,8 @@
                     </div>
                     <div class="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
                         <div class="flex-1">
-                            <label class="block text-sm text-gray-300 font-medium">Delay before blackout</label>
-                            <span class="text-[10px] text-gray-500">Min 3.0 seconds after effect</span>
+                            <label class="block text-sm text-gray-300 font-medium">Delay</label>
+                            <span class="text-[10px] text-gray-500">Min 3 seconds</span>
                         </div>
                         <input type="number" id="setting-black-screen-delay" class="w-16 bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="3" step="0.5">
                     </div>
@@ -1198,7 +1198,7 @@
                     previewLoadingDot.classList.add('opacity-0');
                 }
                 
-                showNotification("⚠️ Login via Settings required for AI Magic.");
+                showNotification("⚠️ Login Required.");
                 
                 if (isPrepModeActive) {
                     prepAiStatus.textContent = 'Login Required';
