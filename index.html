@@ -196,10 +196,11 @@
     </div>
 
     <!-- Quick Switcher Modal -->
+    <!-- PERUBAHAN: Menambahkan max-h pada container, dan flex-1 min-h-0 pada list agar scroll berfungsi benar -->
     <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
-        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
+        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[80vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
             <!-- Drag Handle -->
-            <div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
+            <div class="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
                 <div class="w-12 h-1.5 bg-gray-600 rounded-full"></div>
             </div>
             
@@ -221,8 +222,8 @@
                 </div>
             </div>
             
-            <!-- List (Added overscroll-contain and max-h constraint for better scrolling) -->
-            <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 max-h-[60vh] pb-8" id="quick-switcher-list">
+            <!-- List (Added flex-1 and min-h-0 for safe flex scrolling) -->
+            <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 min-h-0 pb-8" id="quick-switcher-list">
                 <!-- Templates injected here via JS -->
             </div>
         </div>
@@ -250,7 +251,7 @@
             </div>
             
             <!-- Modal Body (Scrollable) -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-7">
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-7 min-h-0">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
                 <div class="space-y-4">
@@ -327,7 +328,7 @@
 
                         <div class="pt-4 border-t border-white/5 mt-4">
                             <label class="block text-sm text-gray-400 mb-3 font-medium pl-1">Saved Templates</label>
-                            <div id="prompt-list" class="flex flex-col gap-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1 pb-2">
+                            <div id="prompt-list" class="flex flex-col gap-2.5 pr-1 pb-2">
                                 <!-- List draft prompt rendered here -->
                             </div>
                         </div>
