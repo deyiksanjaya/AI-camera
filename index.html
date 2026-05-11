@@ -248,7 +248,7 @@
             <!-- Carousel Container -->
             <div class="relative w-full flex-1 flex flex-col min-h-0 mt-2">
                 <!-- The Scrollable Carousel -->
-                <div id="quick-switcher-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full" style="-webkit-overflow-scrolling: touch;">
+                <div id="quick-switcher-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
                     <!-- Carousel Items Injected Here via JS -->
                 </div>
                 <!-- Pagination Dots (Instagram style) -->
@@ -365,7 +365,7 @@
                         <div class="pt-5 border-t border-white/5 mt-4 -mx-6">
                             <label class="block text-sm text-gray-400 mb-3 font-medium px-6">Saved Templates</label>
                             <div class="relative w-full flex flex-col min-h-0">
-                                <div id="prompt-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full" style="-webkit-overflow-scrolling: touch;">
+                                <div id="prompt-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
                                     <!-- Templates -->
                                 </div>
                                 <div id="settings-prompt-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0">
@@ -522,7 +522,7 @@
         let previewState = 'FRONT'; 
         let blackScreenTimer = null;
         let activeQuickTab = 'real-to-ai';
-        let currentEditIndex = -1; // New state variable for tracking template editing
+        let currentEditIndex = -1; // State for template editing
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
@@ -676,7 +676,6 @@
         }
 
         settingEffectMode.addEventListener('change', () => {
-            // Cancel edit if user switches global mode to prevent accidental overwrites across modes
             if (currentEditIndex > -1) {
                 currentEditIndex = -1;
             }
@@ -726,30 +725,26 @@
         }
 
         // ==========================================
-        // SETTINGS PROMPT LIST (Carousel Version)
+        // EDIT / RENDER TEMPLATE LIST LOGIC
         // ==========================================
-        function startEditPrompt(index) {
+        window.startEditPrompt = function(index) {
             currentEditIndex = index;
             const item = savedPrompts[index];
             
-            // Populate form
             settingEffectMode.value = item.mode;
             settingPrompt.value = item.text;
             settingTrigger.value = item.trigger || 'tap';
             settingTransition.value = item.transition || 'fade';
             settingDelay.value = item.delay !== undefined ? item.delay : 2;
             
-            // Re-render UI to display 'Update' button
             updateModeUI();
             
-            // Scroll to top of settings container
             const scroller = document.querySelector('#settings-container .custom-scrollbar');
             if (scroller) scroller.scrollTop = 0;
         }
 
         window.cancelEdit = function() {
             currentEditIndex = -1;
-            // Restore actual applied states to inputs
             settingEffectMode.value = effectMode;
             settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
             settingTrigger.value = triggerMethod;
@@ -787,14 +782,9 @@
             let activeIndexInList = 0;
 
             visiblePrompts.forEach((item, index) => {
-                // Find actual global index in savedPrompts array
                 const actualIndex = savedPrompts.findIndex(p => p === item);
-
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Compare with current form values to highlight
-                // Note: If we are actively editing, we don't necessarily highlight as "active" in the same way,
-                // but we highlight it to show it matches current settings.
                 const isActive = (item.mode === currentMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === currentTrigger && 
@@ -807,7 +797,7 @@
                 wrapper.className = 'w-full shrink-0 snap-center px-6 flex justify-center';
                 
                 const divItem = document.createElement('div');
-                let containerClass = `w-full flex flex-col justify-center p-6 min-h-[140px] rounded-[24px] cursor-pointer active:scale-[0.98] transition-all border relative overflow-hidden `;
+                let containerClass = `w-full flex flex-col justify-center pt-5 pb-3 px-5 min-h-[160px] rounded-[24px] cursor-pointer active:scale-[0.99] transition-all border relative overflow-hidden `;
                 
                 if (isActive) {
                     containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_20px_rgba(255,214,10,0.15)]`;
@@ -818,8 +808,8 @@
                 }
                 divItem.className = containerClass;
                 
+                // Click the card body to apply the template
                 divItem.onclick = () => { 
-                    // When clicked, apply it but also clear edit mode if it was active
                     if (currentEditIndex > -1) currentEditIndex = -1;
                     
                     settingPrompt.value = item.text;
@@ -835,15 +825,13 @@
                     updateModeUI();
                 };
                 
+                // Main Content (Text and Pills)
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-[15px] leading-relaxed mb-4 line-clamp-3 text-center px-4 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
+                textSpan.className = `text-[15px] leading-relaxed mb-3 line-clamp-3 text-center px-2 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
                 
-                const bottomRow = document.createElement('div');
-                bottomRow.className = 'flex items-center justify-center mt-auto';
-                
                 const pillsContainer = document.createElement('div');
-                pillsContainer.className = 'flex items-center justify-center gap-2';
+                pillsContainer.className = 'flex items-center justify-center gap-2 mb-4';
                 
                 const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
                                   isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
@@ -859,49 +847,43 @@
                     <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${delLabel}</span>
                 `;
                 
-                bottomRow.appendChild(pillsContainer);
-                divItem.appendChild(textSpan);
-                divItem.appendChild(bottomRow);
-
-                // Checkmark di pojok kanan bawah
-                if (isActive) {
-                    const checkIcon = document.createElement('div');
-                    checkIcon.className = "absolute bottom-4 right-4 text-[#ffd60a]";
-                    checkIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                    divItem.appendChild(checkIcon);
-                }
-
-                // Action Buttons Container (Top Right)
+                // Action Buttons Row (Bottom Centered)
                 const actionBtns = document.createElement('div');
-                actionBtns.className = 'absolute top-3 right-3 flex items-center gap-1 z-10';
+                actionBtns.className = 'flex items-center justify-center gap-6 w-full pt-3 mt-auto border-t border-white/10 relative z-10';
 
-                // Edit Button
                 const editBtn = document.createElement('button');
-                editBtn.className = 'text-gray-500 hover:text-blue-400 p-2 rounded-full hover:bg-white/10 transition-all';
-                editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+                editBtn.className = 'text-gray-400 hover:text-blue-400 p-2 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
+                editBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
                 editBtn.onclick = (e) => {
                     e.stopPropagation();
-                    if(actualIndex > -1) startEditPrompt(actualIndex);
+                    if(actualIndex > -1) window.startEditPrompt(actualIndex);
                 };
 
-                // Delete Button
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-2 rounded-full hover:bg-white/10 transition-all';
-                deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                deleteBtn.className = 'text-gray-400 hover:text-red-400 p-2 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
+                deleteBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     if(actualIndex > -1) {
-                        // If deleting the currently edited template, cancel edit first
-                        if(currentEditIndex === actualIndex) {
-                            cancelEdit();
-                        }
+                        if(currentEditIndex === actualIndex) cancelEdit();
                         deletePrompt(actualIndex);
                     }
                 };
 
                 actionBtns.appendChild(editBtn);
                 actionBtns.appendChild(deleteBtn);
+                
+                divItem.appendChild(textSpan);
+                divItem.appendChild(pillsContainer);
                 divItem.appendChild(actionBtns);
+
+                // Checkmark di pojok kanan lurus area action buttons
+                if (isActive) {
+                    const checkIcon = document.createElement('div');
+                    checkIcon.className = "absolute bottom-4 right-5 text-[#ffd60a] z-0 opacity-90";
+                    checkIcon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    divItem.appendChild(checkIcon);
+                }
                 
                 wrapper.appendChild(divItem);
                 listContainer.appendChild(wrapper);
@@ -953,7 +935,6 @@
             if (!currentVal) return;
 
             if (currentEditIndex > -1) {
-                // Update Existing Mode
                 savedPrompts[currentEditIndex] = {
                     text: currentVal, 
                     mode: currentMode,
@@ -962,9 +943,9 @@
                     delay: currentDelay
                 };
                 showNotification("✨ Template updated!");
-                cancelEdit(); // Saves to localstorage & updates UI inside cancelEdit
+                cancelEdit(); 
+                localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
             } else {
-                // Save New Mode
                 if (!savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
                     savedPrompts.unshift({ 
                         text: currentVal, 
@@ -982,20 +963,20 @@
 
         function deletePrompt(index) {
             savedPrompts.splice(index, 1);
-            
-            // Adjust edit index if we delete an item before it in the array
-            if (currentEditIndex > index) {
-                currentEditIndex--;
-            }
+            if (currentEditIndex > index) currentEditIndex--;
             
             localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
             renderPromptList();
+            
+            // Refresh Quick Switcher if it's currently open to sync state
+            if (!document.getElementById('quick-switcher-modal').classList.contains('hidden')) {
+                renderQuickSwitcherList();
+            }
         }
 
         window.openSettings = function() {
-            currentEditIndex = -1; // Reset edit state when opening settings
+            currentEditIndex = -1;
             
-            // Ensure inputs reflect currently applied settings, not leftover edits
             settingEffectMode.value = effectMode;
             settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
             settingTrigger.value = triggerMethod;
@@ -1016,10 +997,6 @@
         window.closeSettings = function() {
             googleApiKey = settingGoogleApiKey.value.trim();
             googleAiModel = settingGoogleModel.value.trim() || "gemini-3.1-flash-image-preview";
-            
-            // Only apply settings if we are NOT in edit mode. 
-            // If in edit mode, user is just browsing/editing without wanting to apply immediately.
-            // But usually, closing settings applies current config.
             
             effectMode = settingEffectMode.value;
             triggerMethod = settingTrigger.value;
@@ -1055,7 +1032,7 @@
             setTimeout(() => {
                 settingsModal.classList.remove('flex');
                 settingsModal.classList.add('hidden');
-                currentEditIndex = -1; // clear edit mode after closing
+                currentEditIndex = -1; 
             }, 300);
         };
 
@@ -1134,9 +1111,9 @@
             let activeIndexInList = 0;
 
             visiblePrompts.forEach((item, index) => {
+                const actualIndex = savedPrompts.findIndex(p => p === item);
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Cek template mana yang sedang aktif secara global
                 const isActive = (item.mode === effectMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === triggerMethod && 
@@ -1145,12 +1122,11 @@
                 
                 if (isActive) activeIndexInList = index;
                 
-                // Wrapper pembungkus tiap card untuk padding di dalam Carousel
                 const wrapper = document.createElement('div');
                 wrapper.className = 'w-full shrink-0 snap-center px-6 flex justify-center';
                 
                 const divItem = document.createElement('div');
-                let containerClass = `w-full flex flex-col justify-center p-6 min-h-[140px] rounded-[24px] cursor-pointer active:scale-[0.98] transition-all border relative overflow-hidden `;
+                let containerClass = `w-full flex flex-col justify-center pt-5 pb-3 px-5 min-h-[160px] rounded-[24px] cursor-pointer active:scale-[0.99] transition-all border relative overflow-hidden `;
                 
                 if (isActive) {
                     containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_20px_rgba(255,214,10,0.15)]`;
@@ -1160,18 +1136,14 @@
                     containerClass += `bg-white/5 hover:bg-white/10 border-white/10`;
                 }
                 divItem.className = containerClass;
-                
                 divItem.onclick = () => applyQuickTemplate(item);
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-[15px] leading-relaxed mb-4 line-clamp-3 text-center px-4 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
+                textSpan.className = `text-[15px] leading-relaxed mb-3 line-clamp-3 text-center px-2 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
                 
-                const bottomRow = document.createElement('div');
-                bottomRow.className = 'flex items-center justify-center mt-auto';
-                
                 const pillsContainer = document.createElement('div');
-                pillsContainer.className = 'flex items-center justify-center gap-2';
+                pillsContainer.className = 'flex items-center justify-center gap-2 mb-4';
                 
                 const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
                                   isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
@@ -1186,23 +1158,54 @@
                     <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${effLabel}</span>
                     <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${delLabel}</span>
                 `;
+
+                // Action Buttons Row (Bottom Centered)
+                const actionBtns = document.createElement('div');
+                actionBtns.className = 'flex items-center justify-center gap-6 w-full pt-3 mt-auto border-t border-white/10 relative z-10';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'text-gray-400 hover:text-blue-400 p-2.5 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
+                editBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if(actualIndex > -1) {
+                        closeQuickSwitcher();
+                        openSettings();
+                        setTimeout(() => window.startEditPrompt(actualIndex), 350);
+                    }
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'text-gray-400 hover:text-red-400 p-2.5 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
+                deleteBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if(actualIndex > -1) {
+                        deletePrompt(actualIndex);
+                        // Refresh the UI within Quick Switcher
+                        renderQuickSwitcherList();
+                    }
+                };
+
+                actionBtns.appendChild(editBtn);
+                actionBtns.appendChild(deleteBtn);
                 
-                bottomRow.appendChild(pillsContainer);
                 divItem.appendChild(textSpan);
-                divItem.appendChild(bottomRow);
+                divItem.appendChild(pillsContainer);
+                divItem.appendChild(actionBtns);
                 
-                // Checkmark di pojok kanan bawah
+                // Checkmark di pojok kanan lurus area action buttons
                 if(isActive) {
                     const checkIcon = document.createElement('div');
-                    checkIcon.className = "absolute bottom-4 right-4 text-[#ffd60a]";
-                    checkIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    checkIcon.className = "absolute bottom-4 right-5 text-[#ffd60a] z-0 opacity-90";
+                    checkIcon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     divItem.appendChild(checkIcon);
                 }
                 
                 wrapper.appendChild(divItem);
                 listContainer.appendChild(wrapper);
 
-                // Buat Titik Pagination (Instagram Style)
+                // Dot Pagination
                 const dot = document.createElement('div');
                 dot.id = `qs-dot-${index}`;
                 dot.className = `transition-all duration-300 rounded-full h-1.5 ${index === activeIndexInList ? 'w-4 bg-[#ffd60a]' : 'w-1.5 bg-gray-600'}`;
@@ -1217,7 +1220,6 @@
                 }
             });
 
-            // Update titik waktu di scroll
             listContainer.onscroll = () => {
                 const itemWidth = listContainer.clientWidth; 
                 if (itemWidth > 0) {
