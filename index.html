@@ -221,8 +221,8 @@
                 </div>
             </div>
             
-            <!-- List -->
-            <div class="p-5 overflow-y-auto custom-scrollbar flex-1 pb-8" id="quick-switcher-list">
+            <!-- List (Added overscroll-contain and max-h constraint for better scrolling) -->
+            <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 max-h-[60vh] pb-8" id="quick-switcher-list">
                 <!-- Templates injected here via JS -->
             </div>
         </div>
@@ -327,7 +327,7 @@
 
                         <div class="pt-4 border-t border-white/5 mt-4">
                             <label class="block text-sm text-gray-400 mb-3 font-medium pl-1">Saved Templates</label>
-                            <div id="prompt-list" class="flex flex-col gap-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                            <div id="prompt-list" class="flex flex-col gap-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1 pb-2">
                                 <!-- List draft prompt rendered here -->
                             </div>
                         </div>
@@ -501,14 +501,13 @@
         let blackScreenDelaySec = storedBSDelay !== null ? parseFloat(storedBSDelay) : 3;
         if (isNaN(blackScreenDelaySec) || blackScreenDelaySec < 3) blackScreenDelaySec = 3;
 
-        // Migrasi list prompt lama menjadi format baru yang mengikat transisi
+        // Migrasi list prompt
         let rawSaved = localStorage.getItem('saved_prompts');
         let savedPrompts = [];
         if (rawSaved) {
             try {
                 let parsed = JSON.parse(rawSaved);
                 if (parsed.length > 0 && typeof parsed[0] === 'string') {
-                    // Migrasi dari format jadul banget
                     savedPrompts = parsed.map(p => ({ text: p, mode: 'real-to-ai', trigger: 'tap', transition: 'fade', delay: 2 }));
                     localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
                 } else {
@@ -581,13 +580,18 @@
 
         loadMagicState();
 
+        // Listeners for UI updates to drop highlight when user modifies input
         settingPrompt.addEventListener('input', (e) => {
             if (settingEffectMode.value === 'real-to-ai') {
                 promptRealToAi = e.target.value;
             } else {
                 promptAiToReal = e.target.value;
             }
+            renderPromptList();
         });
+        settingTrigger.addEventListener('change', renderPromptList);
+        settingTransition.addEventListener('change', renderPromptList);
+        settingDelay.addEventListener('input', renderPromptList);
 
         function updateModeUI() {
             const isAiToReal = settingEffectMode.value === 'ai-to-real';
@@ -661,6 +665,11 @@
             listContainer.innerHTML = '';
             
             const currentMode = settingEffectMode.value;
+            const currentActivePromptText = settingPrompt.value.trim();
+            const currentTrigger = settingTrigger.value;
+            const currentTransition = settingTransition.value;
+            const currentDelay = parseFloat(settingDelay.value) || 0;
+
             const visiblePrompts = savedPrompts.filter(p => p.mode === currentMode);
 
             if (visiblePrompts.length === 0) {
@@ -672,17 +681,15 @@
                 return;
             }
 
-            const currentActivePromptText = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
-
             visiblePrompts.forEach((item) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Cek apakah item ini adalah template yang saat ini sedang aktif (Match sempurna)
-                const isActive = (item.mode === effectMode && 
+                // Compare with current form values to highlight
+                const isActive = (item.mode === currentMode && 
                                   item.text === currentActivePromptText && 
-                                  (item.trigger || 'tap') === triggerMethod && 
-                                  (item.transition || 'fade') === transitionType && 
-                                  (item.delay !== undefined ? item.delay : 2) === fadeDelaySec);
+                                  (item.trigger || 'tap') === currentTrigger && 
+                                  (item.transition || 'fade') === currentTransition && 
+                                  (item.delay !== undefined ? item.delay : 2) === currentDelay);
                 
                 const divItem = document.createElement('div');
                 let containerClass = `flex items-center justify-between rounded-xl p-3 transition-colors group border `;
@@ -729,9 +736,8 @@
                     if (item.transition) settingTransition.value = item.transition;
                     if (item.delay !== undefined) settingDelay.value = item.delay;
                     
-                    // Supaya highlight langsung terupdate saat di klik dalam Settings Modal
-                    window.closeSettings();
-                    setTimeout(() => window.openSettings(), 350); 
+                    // DOM update smoothly without closing settings modal
+                    renderPromptList();
                 };
 
                 const deleteBtn = document.createElement('button');
@@ -904,7 +910,7 @@
             visiblePrompts.forEach((item) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Cek apakah item ini adalah template yang saat ini sedang aktif (Match sempurna)
+                // Cek apakah item ini adalah template yang saat ini sedang aktif secara global
                 const isActive = (item.mode === effectMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === triggerMethod && 
