@@ -82,7 +82,7 @@
                 <img src="icon-512.png" alt="Lucid Logo" class="w-10 h-10 rounded-xl shadow-lg object-cover">
                 LUCID
             </h1>
-            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the app.</p>
+            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the magic camera.</p>
             
             <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black px-6 py-4 rounded-xl font-bold active:scale-[0.98] transition-all shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 48 48">
@@ -97,6 +97,7 @@
         </div>
     </div>
 
+    <!-- Script Instan untuk Skip Login Screen kalau udah ada cache -->
     <script>
         if (localStorage.getItem('lucid_auth_status') === 'true') {
             document.getElementById('login-overlay').style.display = 'none';
@@ -671,33 +672,52 @@
                 return;
             }
 
+            const currentActivePromptText = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
+
             visiblePrompts.forEach((item) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
+                // Cek apakah item ini adalah template yang saat ini sedang aktif (Match sempurna)
+                const isActive = (item.mode === effectMode && 
+                                  item.text === currentActivePromptText && 
+                                  (item.trigger || 'tap') === triggerMethod && 
+                                  (item.transition || 'fade') === transitionType && 
+                                  (item.delay !== undefined ? item.delay : 2) === fadeDelaySec);
+                
                 const divItem = document.createElement('div');
-                divItem.className = isBlue 
-                    ? 'flex items-center justify-between bg-blue-900/10 border border-blue-500/20 rounded-xl p-3 hover:bg-blue-900/30 transition-colors group'
-                    : 'flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 hover:bg-black/60 transition-colors group';
+                let containerClass = `flex items-center justify-between rounded-xl p-3 transition-colors group border `;
+                
+                if (isActive) {
+                    containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_10px_rgba(255,214,10,0.1)]`;
+                } else if (isBlue) {
+                    containerClass += `bg-blue-900/10 hover:bg-blue-900/30 border-blue-500/20`;
+                } else {
+                    containerClass += `bg-black/40 hover:bg-black/60 border-white/5`;
+                }
+                divItem.className = containerClass;
                 
                 const textContainer = document.createElement('div');
                 textContainer.className = 'flex-1 pr-3 cursor-pointer overflow-hidden';
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-[13px] truncate block leading-relaxed ${isBlue ? 'text-blue-300' : 'text-gray-200'}`;
+                textSpan.className = `text-[13px] truncate block leading-relaxed ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-300' : 'text-gray-200')}`;
                 textSpan.textContent = item.text;
                 
-                // Info badges buat transisinya
                 const detailsSpan = document.createElement('span');
-                detailsSpan.className = `text-[10px] block mt-1 font-medium tracking-wide ${isBlue ? 'text-blue-500/80' : 'text-gray-500'}`;
+                detailsSpan.className = `text-[10px] block mt-1 font-medium tracking-wide flex items-center justify-between ${isActive ? 'text-[#ffd60a]/80' : (isBlue ? 'text-blue-500/80' : 'text-gray-500')}`;
                 const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
                 const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
                 const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
-                detailsSpan.textContent = `[ ${trigLabel} • ${effLabel} • ${delLabel} ]`;
+                
+                let detailsHTML = `<span>[ ${trigLabel} • ${effLabel} • ${delLabel} ]</span>`;
+                if (isActive) {
+                    detailsHTML += `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
+                detailsSpan.innerHTML = detailsHTML;
                 
                 textContainer.appendChild(textSpan);
                 textContainer.appendChild(detailsSpan);
                 
-                // Kalau di-klik, load text prompt DAN load settingan transisinya ke UI Settings
                 textContainer.onclick = () => { 
                     settingPrompt.value = item.text;
                     if (item.mode === 'real-to-ai') {
@@ -708,6 +728,10 @@
                     if (item.trigger) settingTrigger.value = item.trigger;
                     if (item.transition) settingTransition.value = item.transition;
                     if (item.delay !== undefined) settingDelay.value = item.delay;
+                    
+                    // Supaya highlight langsung terupdate saat di klik dalam Settings Modal
+                    window.closeSettings();
+                    setTimeout(() => window.openSettings(), 350); 
                 };
 
                 const deleteBtn = document.createElement('button');
@@ -722,7 +746,7 @@
 
                 divItem.appendChild(textContainer);
                 divItem.appendChild(deleteBtn);
-                promptListContainer.appendChild(divItem);
+                listContainer.appendChild(divItem);
             });
         }
 
@@ -733,7 +757,6 @@
             const currentTransition = settingTransition.value;
             const currentDelay = parseFloat(settingDelay.value) || 0;
             
-            // Cek biar ngga save template yang bener-bener kembar 100%
             if (currentVal && !savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
                 savedPrompts.unshift({ 
                     text: currentVal, 
@@ -876,24 +899,48 @@
                 return;
             }
             
+            const currentActivePromptText = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
+
             visiblePrompts.forEach((item) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
+                // Cek apakah item ini adalah template yang saat ini sedang aktif (Match sempurna)
+                const isActive = (item.mode === effectMode && 
+                                  item.text === currentActivePromptText && 
+                                  (item.trigger || 'tap') === triggerMethod && 
+                                  (item.transition || 'fade') === transitionType && 
+                                  (item.delay !== undefined ? item.delay : 2) === fadeDelaySec);
+                
                 const divItem = document.createElement('div');
-                divItem.className = `flex flex-col p-4 mb-3 rounded-2xl cursor-pointer active:scale-[0.98] transition-all border ${isBlue ? 'bg-blue-900/20 hover:bg-blue-900/40 border-blue-500/30' : 'bg-white/5 hover:bg-white/10 border-white/10'}`;
+                let containerClass = `flex flex-col p-4 mb-3 rounded-2xl cursor-pointer active:scale-[0.98] transition-all border `;
+                
+                if (isActive) {
+                    containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_15px_rgba(255,214,10,0.1)]`;
+                } else if (isBlue) {
+                    containerClass += `bg-blue-900/20 hover:bg-blue-900/40 border-blue-500/30`;
+                } else {
+                    containerClass += `bg-white/5 hover:bg-white/10 border-white/10`;
+                }
+                divItem.className = containerClass;
                 
                 divItem.onclick = () => applyQuickTemplate(item);
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-[13px] leading-relaxed mb-2.5 ${isBlue ? 'text-blue-200' : 'text-white'}`;
+                textSpan.className = `text-[13px] leading-relaxed mb-2.5 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
                 
                 const detailsSpan = document.createElement('span');
-                detailsSpan.className = `text-[10px] font-medium tracking-wider uppercase ${isBlue ? 'text-blue-400' : 'text-gray-400'}`;
+                detailsSpan.className = `text-[10px] font-medium tracking-wider uppercase flex items-center justify-between ${isActive ? 'text-[#ffd60a]/80' : (isBlue ? 'text-blue-400' : 'text-gray-400')}`;
+                
                 const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
                 const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
                 const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
-                detailsSpan.innerHTML = `<span class="opacity-70">Config:</span> ${trigLabel} • ${effLabel} • ${delLabel}`;
+                
+                let detailsHTML = `<span><span class="opacity-70">Config:</span> ${trigLabel} • ${effLabel} • ${delLabel}</span>`;
+                if (isActive) {
+                    detailsHTML += `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
+                detailsSpan.innerHTML = detailsHTML;
                 
                 divItem.appendChild(textSpan);
                 divItem.appendChild(detailsSpan);
@@ -1493,7 +1540,7 @@
         });
     </script>
 
-    <!-- Firebase Auth Logic -->
+    <!-- Firebase Auth Logic (Background Check) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
