@@ -158,7 +158,7 @@
             </svg>
             <span id="flash-auto-text" class="absolute -right-1 -bottom-1 text-[9px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,1)] leading-none tracking-tighter transition-opacity duration-300">A</span>
         </div>
-        <!-- Grid Dots (Trigger for Quick Switcher) -->
+        <!-- Grid Dots (Trigger for Prompt Switcher) -->
         <div onclick="openQuickSwitcher()" class="cursor-pointer active:scale-90 transition-transform p-1 -m-1">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                 <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
@@ -219,7 +219,7 @@
         </div>
     </div>
 
-    <!-- Quick Switcher Modal (Carousel Version) -->
+    <!-- Prompt Switcher Modal (Carousel Version) -->
     <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
         <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300 pb-8">
             <!-- Drag Handle -->
@@ -351,10 +351,15 @@
                         <!-- The Prompt -->
                         <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your prompt here..."></textarea>
                         
-                        <button id="save-prompt-btn" onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                            Save as Draft
-                        </button>
+                        <div class="flex gap-2">
+                            <button id="save-prompt-btn" onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                Save as Draft
+                            </button>
+                            <button id="cancel-edit-btn" onclick="cancelEdit()" class="hidden px-4 flex items-center justify-center bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-xl font-medium transition-all text-sm border border-white/10">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
 
                         <!-- The Prompt List (Carousel in Settings) -->
                         <div class="pt-5 border-t border-white/5 mt-4 -mx-6">
@@ -517,6 +522,7 @@
         let previewState = 'FRONT'; 
         let blackScreenTimer = null;
         let activeQuickTab = 'real-to-ai';
+        let currentEditIndex = -1; // New state variable for tracking template editing
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
@@ -643,20 +649,40 @@
                 promptSectionTitle.className = 'text-[11px] font-bold text-blue-400 uppercase tracking-widest flex items-center gap-1.5';
                 settingPrompt.value = promptAiToReal;
                 settingPrompt.classList.replace('focus:border-[#ffd60a]', 'focus:border-blue-400');
-                savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30';
             } else {
                 promptSectionTitle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> TEMPLATE (REAL ➔ AI)`;
                 promptSectionTitle.className = 'text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest flex items-center gap-1.5';
                 settingPrompt.value = promptRealToAi;
                 settingPrompt.classList.replace('focus:border-blue-400', 'focus:border-[#ffd60a]');
-                savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10';
+            }
+
+            // Handling the state of "Save as Draft" vs "Update Template" based on edit index
+            if (currentEditIndex > -1) {
+                savePromptBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Update Template`;
+                savePromptBtn.className = 'flex-1 flex items-center justify-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30';
+                document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            } else {
+                savePromptBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg> Save as Draft`;
+                if (isAiToReal) {
+                    savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30';
+                } else {
+                    savePromptBtn.className = 'w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10';
+                }
+                document.getElementById('cancel-edit-btn').classList.add('hidden');
             }
 
             renderPromptList(); 
             loadMagicState(); 
         }
 
-        settingEffectMode.addEventListener('change', updateModeUI);
+        settingEffectMode.addEventListener('change', () => {
+            // Cancel edit if user switches global mode to prevent accidental overwrites across modes
+            if (currentEditIndex > -1) {
+                currentEditIndex = -1;
+            }
+            updateModeUI();
+        });
+        
         updateModeUI();
 
         window.initCamera = async function() {
@@ -702,6 +728,37 @@
         // ==========================================
         // SETTINGS PROMPT LIST (Carousel Version)
         // ==========================================
+        function startEditPrompt(index) {
+            currentEditIndex = index;
+            const item = savedPrompts[index];
+            
+            // Populate form
+            settingEffectMode.value = item.mode;
+            settingPrompt.value = item.text;
+            settingTrigger.value = item.trigger || 'tap';
+            settingTransition.value = item.transition || 'fade';
+            settingDelay.value = item.delay !== undefined ? item.delay : 2;
+            
+            // Re-render UI to display 'Update' button
+            updateModeUI();
+            
+            // Scroll to top of settings container
+            const scroller = document.querySelector('#settings-container .custom-scrollbar');
+            if (scroller) scroller.scrollTop = 0;
+        }
+
+        window.cancelEdit = function() {
+            currentEditIndex = -1;
+            // Restore actual applied states to inputs
+            settingEffectMode.value = effectMode;
+            settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
+            settingTrigger.value = triggerMethod;
+            settingTransition.value = transitionType;
+            settingDelay.value = fadeDelaySec;
+            
+            updateModeUI();
+        }
+
         function renderPromptList() {
             const listContainer = document.getElementById('prompt-list');
             const dotsContainer = document.getElementById('settings-prompt-dots');
@@ -730,9 +787,14 @@
             let activeIndexInList = 0;
 
             visiblePrompts.forEach((item, index) => {
+                // Find actual global index in savedPrompts array
+                const actualIndex = savedPrompts.findIndex(p => p === item);
+
                 const isBlue = item.mode === 'ai-to-real';
                 
                 // Compare with current form values to highlight
+                // Note: If we are actively editing, we don't necessarily highlight as "active" in the same way,
+                // but we highlight it to show it matches current settings.
                 const isActive = (item.mode === currentMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === currentTrigger && 
@@ -757,6 +819,9 @@
                 divItem.className = containerClass;
                 
                 divItem.onclick = () => { 
+                    // When clicked, apply it but also clear edit mode if it was active
+                    if (currentEditIndex > -1) currentEditIndex = -1;
+                    
                     settingPrompt.value = item.text;
                     if (item.mode === 'real-to-ai') {
                         promptRealToAi = item.text;
@@ -767,7 +832,7 @@
                     if (item.transition) settingTransition.value = item.transition;
                     if (item.delay !== undefined) settingDelay.value = item.delay;
                     
-                    renderPromptList();
+                    updateModeUI();
                 };
                 
                 const textSpan = document.createElement('span');
@@ -806,17 +871,37 @@
                     divItem.appendChild(checkIcon);
                 }
 
-                // Delete button di pojok kanan atas
+                // Action Buttons Container (Top Right)
+                const actionBtns = document.createElement('div');
+                actionBtns.className = 'absolute top-3 right-3 flex items-center gap-1 z-10';
+
+                // Edit Button
+                const editBtn = document.createElement('button');
+                editBtn.className = 'text-gray-500 hover:text-blue-400 p-2 rounded-full hover:bg-white/10 transition-all';
+                editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if(actualIndex > -1) startEditPrompt(actualIndex);
+                };
+
+                // Delete Button
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'absolute top-3 right-3 text-gray-500 hover:text-red-400 p-2 rounded-full hover:bg-white/10 transition-all z-10';
+                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-2 rounded-full hover:bg-white/10 transition-all';
                 deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-                
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
-                    const actualIndex = savedPrompts.findIndex(p => p.text === item.text && p.mode === item.mode && p.trigger === item.trigger && p.transition === item.transition && p.delay === item.delay);
-                    if(actualIndex > -1) deletePrompt(actualIndex);
+                    if(actualIndex > -1) {
+                        // If deleting the currently edited template, cancel edit first
+                        if(currentEditIndex === actualIndex) {
+                            cancelEdit();
+                        }
+                        deletePrompt(actualIndex);
+                    }
                 };
-                divItem.appendChild(deleteBtn);
+
+                actionBtns.appendChild(editBtn);
+                actionBtns.appendChild(deleteBtn);
+                divItem.appendChild(actionBtns);
                 
                 wrapper.appendChild(divItem);
                 listContainer.appendChild(wrapper);
@@ -865,26 +950,58 @@
             const currentTransition = settingTransition.value;
             const currentDelay = parseFloat(settingDelay.value) || 0;
             
-            if (currentVal && !savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
-                savedPrompts.unshift({ 
+            if (!currentVal) return;
+
+            if (currentEditIndex > -1) {
+                // Update Existing Mode
+                savedPrompts[currentEditIndex] = {
                     text: currentVal, 
                     mode: currentMode,
                     trigger: currentTrigger,
                     transition: currentTransition,
                     delay: currentDelay
-                });
-                localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
-                renderPromptList();
+                };
+                showNotification("✨ Template updated!");
+                cancelEdit(); // Saves to localstorage & updates UI inside cancelEdit
+            } else {
+                // Save New Mode
+                if (!savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
+                    savedPrompts.unshift({ 
+                        text: currentVal, 
+                        mode: currentMode,
+                        trigger: currentTrigger,
+                        transition: currentTransition,
+                        delay: currentDelay
+                    });
+                    localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
+                    renderPromptList();
+                    showNotification("✨ Saved as draft!");
+                }
             }
         };
 
         function deletePrompt(index) {
             savedPrompts.splice(index, 1);
+            
+            // Adjust edit index if we delete an item before it in the array
+            if (currentEditIndex > index) {
+                currentEditIndex--;
+            }
+            
             localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
             renderPromptList();
         }
 
         window.openSettings = function() {
+            currentEditIndex = -1; // Reset edit state when opening settings
+            
+            // Ensure inputs reflect currently applied settings, not leftover edits
+            settingEffectMode.value = effectMode;
+            settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
+            settingTrigger.value = triggerMethod;
+            settingTransition.value = transitionType;
+            settingDelay.value = fadeDelaySec;
+
             updateModeUI(); 
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
@@ -900,8 +1017,11 @@
             googleApiKey = settingGoogleApiKey.value.trim();
             googleAiModel = settingGoogleModel.value.trim() || "gemini-3.1-flash-image-preview";
             
-            effectMode = settingEffectMode.value;
+            // Only apply settings if we are NOT in edit mode. 
+            // If in edit mode, user is just browsing/editing without wanting to apply immediately.
+            // But usually, closing settings applies current config.
             
+            effectMode = settingEffectMode.value;
             triggerMethod = settingTrigger.value;
             transitionType = settingTransition.value;
             let parsedDelay = parseFloat(settingDelay.value);
@@ -935,6 +1055,7 @@
             setTimeout(() => {
                 settingsModal.classList.remove('flex');
                 settingsModal.classList.add('hidden');
+                currentEditIndex = -1; // clear edit mode after closing
             }, 300);
         };
 
@@ -1015,7 +1136,7 @@
             visiblePrompts.forEach((item, index) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Cek template mana yang sedang aktif
+                // Cek template mana yang sedang aktif secara global
                 const isActive = (item.mode === effectMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === triggerMethod && 
