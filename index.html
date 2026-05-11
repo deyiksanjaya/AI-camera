@@ -72,17 +72,21 @@
             padding-right: 2rem !important;
         }
 
-        /* Force modal scroll fix for mobile */
+        /* Force modal scroll fix for Safari iOS */
         #settings-container,
         #quick-switcher-container {
-            height: auto;
-            max-height: 85vh;
+            max-height: 85vh !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
 
         #settings-container .overflow-y-auto,
         #quick-switcher-container .overflow-y-auto {
-            -webkit-overflow-scrolling: touch;
             overflow-y: scroll !important;
+            -webkit-overflow-scrolling: touch !important;
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
         }
     </style>
 </head>
@@ -210,7 +214,7 @@
 
     <!-- Quick Switcher Modal -->
     <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
-        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
+        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
             <!-- Drag Handle -->
             <div class="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
                 <div class="w-12 h-1.5 bg-gray-600 rounded-full"></div>
@@ -234,8 +238,8 @@
                 </div>
             </div>
             
-            <!-- List (Added min-h-0 for flexbox scrolling fix) -->
-            <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 min-h-0 pb-8" id="quick-switcher-list">
+            <!-- List (Flex scroll logic handled by custom CSS block above) -->
+            <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 pb-8" id="quick-switcher-list">
                 <!-- Templates injected here via JS -->
             </div>
         </div>
@@ -243,7 +247,7 @@
 
     <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-auto">
-        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] max-h-[85vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform scale-95 transition-transform duration-300">
+        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] flex flex-col rounded-3xl shadow-2xl border border-white/10 transform scale-95 transition-transform duration-300">
             
             <!-- Modal Header -->
             <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
@@ -262,8 +266,8 @@
                 </button>
             </div>
             
-            <!-- Modal Body (Scrollable) - Removed space-y-7, added manual mb-7 to sections -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
                 <div class="mb-7 space-y-4">
