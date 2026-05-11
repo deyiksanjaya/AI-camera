@@ -76,17 +76,15 @@
         #settings-container,
         #quick-switcher-container {
             max-height: 85vh !important;
-            overflow: hidden !important;
-            display: flex !important;
-            flex-direction: column !important;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         #settings-container .overflow-y-auto,
         #quick-switcher-container .overflow-y-auto {
-            overflow-y: scroll !important;
-            -webkit-overflow-scrolling: touch !important;
-            flex: 1 1 0% !important;
-            min-height: 0 !important;
+            -webkit-overflow-scrolling: touch;
         }
     </style>
 </head>
@@ -99,7 +97,7 @@
                 <img src="icon-512.png" alt="Lucid Logo" class="w-10 h-10 rounded-xl shadow-lg object-cover">
                 LUCID
             </h1>
-            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the magic camera.</p>
+            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the app.</p>
             
             <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black px-6 py-4 rounded-xl font-bold active:scale-[0.98] transition-all shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 48 48">
@@ -238,8 +236,8 @@
                 </div>
             </div>
             
-            <!-- List (Flex scroll logic handled by custom CSS block above) -->
-            <div class="p-5 overscroll-contain custom-scrollbar pb-8" id="quick-switcher-list" style="overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; min-height: 0; height: 0;">
+            <!-- List - Clean Flex Scroll iOS Safari Fix -->
+            <div class="p-5 overscroll-contain custom-scrollbar pb-8 flex-1 min-h-0 overflow-y-auto" id="quick-switcher-list" style="-webkit-overflow-scrolling: touch;">
                 <!-- Templates injected here via JS -->
             </div>
         </div>
@@ -247,7 +245,8 @@
 
     <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-auto">
-        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] rounded-3xl shadow-2xl border border-white/10 transform scale-95 transition-transform duration-300" style="height: 85vh; display: flex; flex-direction: column; overflow: hidden;">            
+        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] flex flex-col rounded-3xl shadow-2xl border border-white/10 transform scale-95 transition-transform duration-300">
+            
             <!-- Modal Header -->
             <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
                 <h2 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
@@ -265,15 +264,15 @@
                 </button>
             </div>
             
-            <!-- Modal Body (Scrollable) -->
-<div class="p-6 custom-scrollbar space-y-7" style="overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; min-height: 0; height: 0;">
+            <!-- Modal Body (Scrollable) - Clean Flex Scroll iOS Safari Fix -->
+            <div class="p-6 custom-scrollbar space-y-7 flex-1 min-h-0 overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
-                <div class="mb-7 space-y-4">
+                <div>
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Routine & Template</h3>
                     
                     <!-- Effect Mode Selection -->
-                    <div>
+                    <div class="mb-4">
                         <select id="setting-effect-mode" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
                             <option value="real-to-ai">Mode: Real ➔ AI</option>
                             <option value="ai-to-real">Mode: AI ➔ Real</option>
@@ -281,7 +280,7 @@
                     </div>
 
                     <!-- CONDITIONAL: AI to Real Routine Prep -->
-                    <div id="ai-to-real-prep-section" class="hidden space-y-3 bg-blue-900/10 p-4 rounded-xl border border-blue-500/20">
+                    <div id="ai-to-real-prep-section" class="hidden space-y-3 bg-blue-900/10 p-4 rounded-xl border border-blue-500/20 mb-4">
                         <div>
                             <h4 class="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">Prepare AI to Real Photo</h4>
                             <p class="text-xs text-gray-400 leading-relaxed">
@@ -351,22 +350,24 @@
                 </div>
 
                 <!-- Section 2: API Configuration -->
-                <div class="mb-7 space-y-4 pt-5 border-t border-white/5">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">API Configuration</h3>
+                <div class="pt-5 border-t border-white/5">
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">API Configuration</h3>
                     
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
-                        <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
-                        <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
+                            <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
+                            <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Section 3: Black Screen -->
-                <div class="mb-7 space-y-4 pt-5 border-t border-white/5">
-                    <div class="flex justify-between items-center pl-1">
+                <div class="pt-5 border-t border-white/5">
+                    <div class="flex justify-between items-center pl-1 mb-4">
                         <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="setting-black-screen" class="sr-only peer">
@@ -383,8 +384,8 @@
                 </div>
 
                 <!-- Section 4: Account (Logout only) -->
-                <div class="space-y-4 pt-5 border-t border-white/5">
-                    <div class="flex items-center justify-center gap-2 text-xs text-green-400 bg-green-400/10 py-2.5 rounded-xl border border-green-400/20">
+                <div class="pt-5 border-t border-white/5 pb-2">
+                    <div class="flex items-center justify-center gap-2 text-xs text-green-400 bg-green-400/10 py-2.5 rounded-xl border border-green-400/20 mb-4">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         <span id="user-email-display" class="truncate max-w-[250px] font-medium">Verified User</span>
                     </div>
