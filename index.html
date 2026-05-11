@@ -97,7 +97,7 @@
                 <img src="icon-512.png" alt="Lucid Logo" class="w-10 h-10 rounded-xl shadow-lg object-cover">
                 LUCID
             </h1>
-            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the app.</p>
+            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the magic camera.</p>
             
             <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black px-6 py-4 rounded-xl font-bold active:scale-[0.98] transition-all shadow-lg">
                 <svg width="20" height="20" viewBox="0 0 48 48">
@@ -237,7 +237,7 @@
             </div>
             
             <!-- List - Clean Flex Scroll iOS Safari Fix -->
-            <div class="p-5 overscroll-contain custom-scrollbar pb-8 flex-1 min-h-0 overflow-y-auto" id="quick-switcher-list" style="-webkit-overflow-scrolling: touch;">
+            <div class="p-5 overscroll-contain custom-scrollbar flex-1 min-h-0 overflow-y-auto" id="quick-switcher-list" style="-webkit-overflow-scrolling: touch;">
                 <!-- Templates injected here via JS -->
             </div>
         </div>
@@ -265,10 +265,10 @@
             </div>
             
             <!-- Modal Body (Scrollable) - Clean Flex Scroll iOS Safari Fix -->
-            <div class="p-6 custom-scrollbar space-y-7 flex-1 min-h-0 overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
+            <div class="p-6 custom-scrollbar flex-1 min-h-0 overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
-                <div>
+                <div class="mb-7">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Routine & Template</h3>
                     
                     <!-- Effect Mode Selection -->
@@ -280,8 +280,8 @@
                     </div>
 
                     <!-- CONDITIONAL: AI to Real Routine Prep -->
-                    <div id="ai-to-real-prep-section" class="hidden space-y-3 bg-blue-900/10 p-4 rounded-xl border border-blue-500/20 mb-4">
-                        <div>
+                    <div id="ai-to-real-prep-section" class="hidden bg-blue-900/10 p-4 rounded-xl border border-blue-500/20 mb-4">
+                        <div class="mb-3">
                             <h4 class="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">Prepare AI to Real Photo</h4>
                             <p class="text-xs text-gray-400 leading-relaxed">
                                 Pre-capture the photo backstage. The AI-generated image will be ready on standby in the gallery thumbnail.
@@ -350,7 +350,7 @@
                 </div>
 
                 <!-- Section 2: API Configuration -->
-                <div class="pt-5 border-t border-white/5">
+                <div class="mb-7 pt-5 border-t border-white/5">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">API Configuration</h3>
                     
                     <div class="space-y-4">
@@ -366,7 +366,7 @@
                 </div>
 
                 <!-- Section 3: Black Screen -->
-                <div class="pt-5 border-t border-white/5">
+                <div class="mb-7 pt-5 border-t border-white/5">
                     <div class="flex justify-between items-center pl-1 mb-4">
                         <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -709,7 +709,7 @@
                                   (item.delay !== undefined ? item.delay : 2) === currentDelay);
                 
                 const divItem = document.createElement('div');
-                let containerClass = `flex items-center justify-between rounded-xl p-3 transition-colors group border `;
+                let containerClass = `flex items-center justify-between rounded-xl p-3 transition-colors group border mb-3 `;
                 
                 if (isActive) {
                     containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_10px_rgba(255,214,10,0.1)]`;
@@ -720,29 +720,51 @@
                 }
                 divItem.className = containerClass;
                 
-                const textContainer = document.createElement('div');
-                textContainer.className = 'flex-1 pr-3 cursor-pointer overflow-hidden';
+                // Main Selectable Content
+                const mainContent = document.createElement('div');
+                mainContent.className = 'flex-1 min-w-0 flex flex-col justify-center cursor-pointer pr-3';
                 
+                // Text Span
                 const textSpan = document.createElement('span');
                 textSpan.className = `text-[13px] truncate block leading-relaxed ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-300' : 'text-gray-200')}`;
                 textSpan.textContent = item.text;
                 
-                const detailsSpan = document.createElement('span');
-                detailsSpan.className = `text-[10px] block mt-1 font-medium tracking-wide flex items-center justify-between ${isActive ? 'text-[#ffd60a]/80' : (isBlue ? 'text-blue-500/80' : 'text-gray-500')}`;
-                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
-                const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
+                // Bottom Row: "Config:" and Pills
+                const bottomRow = document.createElement('div');
+                bottomRow.className = 'flex items-center justify-between mt-1.5';
+                
+                const configLabel = document.createElement('div');
+                configLabel.className = `flex items-center gap-1.5 text-[10px] font-medium tracking-wide ${isActive ? 'text-[#ffd60a]' : (isBlue ? 'text-blue-400' : 'text-gray-500')}`;
+                let configInner = `<span class="opacity-70">Config:</span>`;
+                if (isActive) {
+                    configInner += `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
+                configLabel.innerHTML = configInner;
+                
+                const pillsContainer = document.createElement('div');
+                pillsContainer.className = 'flex items-center gap-1.5';
+                
+                const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
+                                  isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
+                                  'bg-white/10 text-gray-300 border border-white/5';
+                
+                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe' : 'Tap';
+                const effLabel = item.transition === 'none' ? 'Inst' : 'Fade';
                 const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
                 
-                let detailsHTML = `<span>[ ${trigLabel} • ${effLabel} • ${delLabel} ]</span>`;
-                if (isActive) {
-                    detailsHTML += `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                }
-                detailsSpan.innerHTML = detailsHTML;
+                pillsContainer.innerHTML = `
+                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${trigLabel}</span>
+                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${effLabel}</span>
+                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${delLabel}</span>
+                `;
                 
-                textContainer.appendChild(textSpan);
-                textContainer.appendChild(detailsSpan);
+                bottomRow.appendChild(configLabel);
+                bottomRow.appendChild(pillsContainer);
                 
-                textContainer.onclick = () => { 
+                mainContent.appendChild(textSpan);
+                mainContent.appendChild(bottomRow);
+                
+                mainContent.onclick = () => { 
                     settingPrompt.value = item.text;
                     if (item.mode === 'real-to-ai') {
                         promptRealToAi = item.text;
@@ -753,12 +775,11 @@
                     if (item.transition) settingTransition.value = item.transition;
                     if (item.delay !== undefined) settingDelay.value = item.delay;
                     
-                    // DOM update smoothly without closing settings modal
                     renderPromptList();
                 };
 
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-all';
+                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-all self-center';
                 deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
                 
                 deleteBtn.onclick = (e) => {
@@ -767,7 +788,7 @@
                     if(actualIndex > -1) deletePrompt(actualIndex);
                 };
 
-                divItem.appendChild(textContainer);
+                divItem.appendChild(mainContent);
                 divItem.appendChild(deleteBtn);
                 listContainer.appendChild(divItem);
             });
@@ -952,21 +973,40 @@
                 textSpan.className = `text-[13px] leading-relaxed mb-2.5 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
                 
-                const detailsSpan = document.createElement('span');
-                detailsSpan.className = `text-[10px] font-medium tracking-wider uppercase flex items-center justify-between ${isActive ? 'text-[#ffd60a]/80' : (isBlue ? 'text-blue-400' : 'text-gray-400')}`;
+                // Bottom Row: "Config:" and Pills
+                const bottomRow = document.createElement('div');
+                bottomRow.className = 'flex items-center justify-between mt-1';
                 
-                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
-                const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
+                const configLabel = document.createElement('div');
+                configLabel.className = `flex items-center gap-1.5 text-[10px] font-medium tracking-wide ${isActive ? 'text-[#ffd60a]' : (isBlue ? 'text-blue-400' : 'text-gray-500')}`;
+                let configInner = `<span class="opacity-70">Config:</span>`;
+                if (isActive) {
+                    configInner += `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
+                configLabel.innerHTML = configInner;
+                
+                const pillsContainer = document.createElement('div');
+                pillsContainer.className = 'flex items-center gap-1.5';
+                
+                const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
+                                  isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
+                                  'bg-white/10 text-gray-300 border border-white/5';
+                
+                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe' : 'Tap';
+                const effLabel = item.transition === 'none' ? 'Inst' : 'Fade';
                 const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
                 
-                let detailsHTML = `<span><span class="opacity-70">Config:</span> ${trigLabel} • ${effLabel} • ${delLabel}</span>`;
-                if (isActive) {
-                    detailsHTML += `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                }
-                detailsSpan.innerHTML = detailsHTML;
+                pillsContainer.innerHTML = `
+                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${trigLabel}</span>
+                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${effLabel}</span>
+                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${delLabel}</span>
+                `;
+                
+                bottomRow.appendChild(configLabel);
+                bottomRow.appendChild(pillsContainer);
                 
                 divItem.appendChild(textSpan);
-                divItem.appendChild(detailsSpan);
+                divItem.appendChild(bottomRow);
                 listContainer.appendChild(divItem);
             });
         }
