@@ -82,7 +82,8 @@
         }
 
         /* Force modal scroll fix for Safari iOS */
-        #settings-container {
+        #settings-container,
+        #quick-switcher-container {
             max-height: 85vh !important;
             min-height: 0;
             overflow: hidden;
@@ -90,7 +91,8 @@
             flex-direction: column;
         }
 
-        #settings-container .overflow-y-auto {
+        #settings-container .overflow-y-auto,
+        #quick-switcher-container .overflow-y-auto {
             -webkit-overflow-scrolling: touch;
         }
     </style>
@@ -250,7 +252,7 @@
                     <!-- Carousel Items Injected Here via JS -->
                 </div>
                 <!-- Pagination Dots (Instagram style) -->
-                <div id="quick-switcher-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6">
+                <div id="quick-switcher-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0">
                     <!-- Dots Injected Here via JS -->
                 </div>
             </div>
@@ -354,10 +356,16 @@
                             Save as Draft
                         </button>
 
-                        <div class="pt-4 border-t border-white/5 mt-4">
-                            <label class="block text-sm text-gray-400 mb-3 font-medium pl-1">Saved Templates</label>
-                            <div id="prompt-list" class="flex flex-col gap-2.5 pr-1 pb-2">
-                                <!-- List draft prompt rendered here -->
+                        <!-- The Prompt List (Carousel in Settings) -->
+                        <div class="pt-5 border-t border-white/5 mt-4 -mx-6">
+                            <label class="block text-sm text-gray-400 mb-3 font-medium px-6">Saved Templates</label>
+                            <div class="relative w-full flex flex-col min-h-0">
+                                <div id="prompt-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full" style="-webkit-overflow-scrolling: touch;">
+                                    <!-- Templates -->
+                                </div>
+                                <div id="settings-prompt-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0">
+                                    <!-- Dots -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -691,9 +699,16 @@
             }, 2500);
         }
 
+        // ==========================================
+        // SETTINGS PROMPT LIST (Carousel Version)
+        // ==========================================
         function renderPromptList() {
             const listContainer = document.getElementById('prompt-list');
+            const dotsContainer = document.getElementById('settings-prompt-dots');
+            if (!listContainer || !dotsContainer) return;
+
             listContainer.innerHTML = '';
+            dotsContainer.innerHTML = '';
             
             const currentMode = settingEffectMode.value;
             const currentActivePromptText = settingPrompt.value.trim();
@@ -705,14 +720,16 @@
 
             if (visiblePrompts.length === 0) {
                 listContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20 opacity-70">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        <span class="text-xs text-gray-400 font-medium">No saved templates yet</span>
+                    <div class="w-full flex flex-col items-center justify-center py-8 opacity-60">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2 text-gray-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span class="text-xs font-medium text-gray-400">No saved templates yet</span>
                     </div>`;
                 return;
             }
 
-            visiblePrompts.forEach((item) => {
+            let activeIndexInList = 0;
+
+            visiblePrompts.forEach((item, index) => {
                 const isBlue = item.mode === 'ai-to-real';
                 
                 // Compare with current form values to highlight
@@ -722,60 +739,24 @@
                                   (item.transition || 'fade') === currentTransition && 
                                   (item.delay !== undefined ? item.delay : 2) === currentDelay);
                 
+                if (isActive) activeIndexInList = index;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'w-full shrink-0 snap-center px-6 flex justify-center';
+                
                 const divItem = document.createElement('div');
-                let containerClass = `flex items-center justify-between rounded-xl p-3 transition-colors group border mb-3 `;
+                let containerClass = `w-full flex flex-col justify-center p-6 min-h-[140px] rounded-[24px] cursor-pointer active:scale-[0.98] transition-all border relative overflow-hidden `;
                 
                 if (isActive) {
-                    containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_10px_rgba(255,214,10,0.1)]`;
+                    containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_20px_rgba(255,214,10,0.15)]`;
                 } else if (isBlue) {
-                    containerClass += `bg-blue-900/10 hover:bg-blue-900/30 border-blue-500/20`;
+                    containerClass += `bg-blue-900/20 hover:bg-blue-900/40 border-blue-500/30`;
                 } else {
-                    containerClass += `bg-black/40 hover:bg-black/60 border-white/5`;
+                    containerClass += `bg-white/5 hover:bg-white/10 border-white/10`;
                 }
                 divItem.className = containerClass;
                 
-                const mainContent = document.createElement('div');
-                mainContent.className = 'flex-1 min-w-0 flex flex-col justify-center cursor-pointer pr-3';
-                
-                const textSpan = document.createElement('span');
-                textSpan.className = `text-[13px] truncate block leading-relaxed ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-300' : 'text-gray-200')}`;
-                textSpan.textContent = item.text;
-                
-                const bottomRow = document.createElement('div');
-                bottomRow.className = 'flex items-center justify-between mt-1.5';
-                
-                const configLabel = document.createElement('div');
-                configLabel.className = `flex items-center gap-1.5 text-[10px] font-medium tracking-wide ${isActive ? 'text-[#ffd60a]' : (isBlue ? 'text-blue-400' : 'text-gray-500')}`;
-                let configInner = `<span class="opacity-70">Config:</span>`;
-                if (isActive) {
-                    configInner += `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                }
-                configLabel.innerHTML = configInner;
-                
-                const pillsContainer = document.createElement('div');
-                pillsContainer.className = 'flex items-center gap-1.5';
-                
-                const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
-                                  isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
-                                  'bg-white/10 text-gray-300 border border-white/5';
-                
-                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe' : 'Tap';
-                const effLabel = item.transition === 'none' ? 'Inst' : 'Fade';
-                const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
-                
-                pillsContainer.innerHTML = `
-                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${trigLabel}</span>
-                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${effLabel}</span>
-                    <span class="${pillClass} px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wide">${delLabel}</span>
-                `;
-                
-                bottomRow.appendChild(configLabel);
-                bottomRow.appendChild(pillsContainer);
-                
-                mainContent.appendChild(textSpan);
-                mainContent.appendChild(bottomRow);
-                
-                mainContent.onclick = () => { 
+                divItem.onclick = () => { 
                     settingPrompt.value = item.text;
                     if (item.mode === 'real-to-ai') {
                         promptRealToAi = item.text;
@@ -786,12 +767,48 @@
                     if (item.transition) settingTransition.value = item.transition;
                     if (item.delay !== undefined) settingDelay.value = item.delay;
                     
-                    // DOM update smoothly without closing settings modal
                     renderPromptList();
                 };
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = `text-[15px] leading-relaxed mb-4 line-clamp-3 text-center px-4 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
+                textSpan.textContent = item.text;
+                
+                const bottomRow = document.createElement('div');
+                bottomRow.className = 'flex items-center justify-center mt-auto';
+                
+                const pillsContainer = document.createElement('div');
+                pillsContainer.className = 'flex items-center justify-center gap-2';
+                
+                const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
+                                  isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
+                                  'bg-white/10 text-gray-300 border border-white/5';
+                
+                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
+                const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
+                const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
+                
+                pillsContainer.innerHTML = `
+                    <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${trigLabel}</span>
+                    <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${effLabel}</span>
+                    <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${delLabel}</span>
+                `;
+                
+                bottomRow.appendChild(pillsContainer);
+                divItem.appendChild(textSpan);
+                divItem.appendChild(bottomRow);
 
+                // Checkmark di pojok kanan bawah
+                if (isActive) {
+                    const checkIcon = document.createElement('div');
+                    checkIcon.className = "absolute bottom-4 right-4 text-[#ffd60a]";
+                    checkIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    divItem.appendChild(checkIcon);
+                }
+
+                // Delete button di pojok kanan atas
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-all self-center';
+                deleteBtn.className = 'absolute top-3 right-3 text-gray-500 hover:text-red-400 p-2 rounded-full hover:bg-white/10 transition-all z-10';
                 deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
                 
                 deleteBtn.onclick = (e) => {
@@ -799,11 +816,46 @@
                     const actualIndex = savedPrompts.findIndex(p => p.text === item.text && p.mode === item.mode && p.trigger === item.trigger && p.transition === item.transition && p.delay === item.delay);
                     if(actualIndex > -1) deletePrompt(actualIndex);
                 };
-
-                divItem.appendChild(mainContent);
                 divItem.appendChild(deleteBtn);
-                listContainer.appendChild(divItem);
+                
+                wrapper.appendChild(divItem);
+                listContainer.appendChild(wrapper);
+
+                // Dot Pagination
+                const dot = document.createElement('div');
+                dot.id = `set-dot-${index}`;
+                dot.className = `transition-all duration-300 rounded-full h-1.5 ${index === activeIndexInList ? 'w-4 bg-[#ffd60a]' : 'w-1.5 bg-gray-600'}`;
+                dotsContainer.appendChild(dot);
             });
+
+            // Scroll Sync for Settings
+            requestAnimationFrame(() => {
+                if(listContainer.clientWidth > 0) {
+                    listContainer.scrollLeft = activeIndexInList * listContainer.clientWidth;
+                    updateSettingsDots(activeIndexInList, visiblePrompts.length);
+                }
+            });
+
+            listContainer.onscroll = () => {
+                const itemWidth = listContainer.clientWidth; 
+                if (itemWidth > 0) {
+                    const activeIndex = Math.round(listContainer.scrollLeft / itemWidth);
+                    updateSettingsDots(activeIndex, visiblePrompts.length);
+                }
+            };
+        }
+
+        function updateSettingsDots(activeIndex, total) {
+            for(let i=0; i<total; i++) {
+                const dot = document.getElementById(`set-dot-${i}`);
+                if(dot) {
+                    if(i === activeIndex) {
+                        dot.className = 'transition-all duration-300 rounded-full h-1.5 w-4 bg-[#ffd60a]';
+                    } else {
+                        dot.className = 'transition-all duration-300 rounded-full h-1.5 w-1.5 bg-gray-600';
+                    }
+                }
+            }
         }
 
         window.saveCurrentPrompt = function() {
@@ -977,7 +1029,7 @@
                 wrapper.className = 'w-full shrink-0 snap-center px-6 flex justify-center';
                 
                 const divItem = document.createElement('div');
-                let containerClass = `w-full flex flex-col justify-center p-6 min-h-[140px] rounded-[24px] cursor-pointer active:scale-[0.98] transition-all border `;
+                let containerClass = `w-full flex flex-col justify-center p-6 min-h-[140px] rounded-[24px] cursor-pointer active:scale-[0.98] transition-all border relative overflow-hidden `;
                 
                 if (isActive) {
                     containerClass += `bg-[#ffd60a]/10 hover:bg-[#ffd60a]/20 border-[#ffd60a] shadow-[0_0_20px_rgba(255,214,10,0.15)]`;
@@ -991,7 +1043,7 @@
                 divItem.onclick = () => applyQuickTemplate(item);
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-[15px] leading-relaxed mb-4 line-clamp-3 text-center ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
+                textSpan.className = `text-[15px] leading-relaxed mb-4 line-clamp-3 text-center px-4 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
                 
                 const bottomRow = document.createElement('div');
@@ -1018,12 +1070,11 @@
                 divItem.appendChild(textSpan);
                 divItem.appendChild(bottomRow);
                 
-                // Jika aktif, pasang icon ceklis di pojok
+                // Checkmark di pojok kanan bawah
                 if(isActive) {
                     const checkIcon = document.createElement('div');
-                    checkIcon.className = "absolute top-4 right-4 text-[#ffd60a]";
+                    checkIcon.className = "absolute bottom-4 right-4 text-[#ffd60a]";
                     checkIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                    divItem.style.position = 'relative';
                     divItem.appendChild(checkIcon);
                 }
                 
@@ -1048,9 +1099,10 @@
             // Update titik waktu di scroll
             listContainer.onscroll = () => {
                 const itemWidth = listContainer.clientWidth; 
-                // Cek letak scroll saat ini dibagi lebar satu item
-                const activeIndex = Math.round(listContainer.scrollLeft / itemWidth);
-                updateQuickSwitcherDots(activeIndex, visiblePrompts.length);
+                if (itemWidth > 0) {
+                    const activeIndex = Math.round(listContainer.scrollLeft / itemWidth);
+                    updateQuickSwitcherDots(activeIndex, visiblePrompts.length);
+                }
             };
         }
 
