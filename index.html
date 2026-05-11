@@ -196,9 +196,8 @@
     </div>
 
     <!-- Quick Switcher Modal -->
-    <!-- PERUBAHAN: Menambahkan max-h pada container, dan flex-1 min-h-0 pada list agar scroll berfungsi benar -->
     <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
-        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[80vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
+        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[80vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
             <!-- Drag Handle -->
             <div class="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
                 <div class="w-12 h-1.5 bg-gray-600 rounded-full"></div>
@@ -222,7 +221,7 @@
                 </div>
             </div>
             
-            <!-- List (Added flex-1 and min-h-0 for safe flex scrolling) -->
+            <!-- List (Added flex-1 min-h-0 overflow-y-auto for safe scrolling) -->
             <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 min-h-0 pb-8" id="quick-switcher-list">
                 <!-- Templates injected here via JS -->
             </div>
@@ -231,7 +230,7 @@
 
     <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-auto">
-        <div class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] max-h-[85vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform scale-95 transition-transform duration-300" id="settings-container">
+        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] max-h-[85vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform scale-95 transition-transform duration-300">
             
             <!-- Modal Header -->
             <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
@@ -251,7 +250,7 @@
             </div>
             
             <!-- Modal Body (Scrollable) -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-7 min-h-0">
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 space-y-7">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
                 <div class="space-y-4">
