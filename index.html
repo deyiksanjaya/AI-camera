@@ -97,7 +97,6 @@
         </div>
     </div>
 
-    <!-- Script Instan untuk Skip Login Screen kalau udah ada cache -->
     <script>
         if (localStorage.getItem('lucid_auth_status') === 'true') {
             document.getElementById('login-overlay').style.display = 'none';
@@ -134,12 +133,14 @@
             </svg>
             <span id="flash-auto-text" class="absolute -right-1 -bottom-1 text-[9px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,1)] leading-none tracking-tighter transition-opacity duration-300">A</span>
         </div>
-        <!-- Grid Dots -->
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-            <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
-            <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
-            <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
-        </svg>
+        <!-- Grid Dots (Trigger for Quick Switcher) -->
+        <div onclick="openQuickSwitcher()" class="cursor-pointer active:scale-90 transition-transform p-1 -m-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+                <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+            </svg>
+        </div>
     </div>
 
     <!-- Bottom Controls Container -->
@@ -193,9 +194,42 @@
         </div>
     </div>
 
+    <!-- Quick Switcher Modal -->
+    <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
+        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
+            <!-- Drag Handle -->
+            <div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
+                <div class="w-12 h-1.5 bg-gray-600 rounded-full"></div>
+            </div>
+            
+            <!-- Header & Tabs -->
+            <div class="px-6 py-4 border-b border-white/5 flex flex-col gap-4 shrink-0">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-white tracking-wide">Quick Templates</h2>
+                    <button onclick="closeQuickSwitcher()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Tabs -->
+                <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                    <button id="tab-real-to-ai" onclick="switchQuickTab('real-to-ai')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors text-black bg-[#ffd60a]">REAL ➔ AI</button>
+                    <button id="tab-ai-to-real" onclick="switchQuickTab('ai-to-real')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-gray-300">AI ➔ REAL</button>
+                </div>
+            </div>
+            
+            <!-- List -->
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1 pb-8" id="quick-switcher-list">
+                <!-- Templates injected here via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- AI Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] max-h-[85vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 pointer-events-auto overflow-hidden transform scale-95 transition-transform duration-300" id="settings-container">
+    <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-auto">
+        <div class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] max-h-[85vh] flex flex-col rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform scale-95 transition-transform duration-300" id="settings-container">
             
             <!-- Modal Header -->
             <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
@@ -442,6 +476,7 @@
         let isTrickCompleted = false; 
         let previewState = 'FRONT'; 
         let blackScreenTimer = null;
+        let activeQuickTab = 'real-to-ai';
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
@@ -621,16 +656,17 @@
         }
 
         function renderPromptList() {
-            promptListContainer.innerHTML = '';
+            const listContainer = document.getElementById('prompt-list');
+            listContainer.innerHTML = '';
             
             const currentMode = settingEffectMode.value;
             const visiblePrompts = savedPrompts.filter(p => p.mode === currentMode);
 
             if (visiblePrompts.length === 0) {
-                promptListContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        <span class="text-xs text-gray-500 font-medium">No saved templates yet</span>
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-6 border border-dashed border-white/10 rounded-xl bg-black/20 opacity-70">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span class="text-xs text-gray-400 font-medium">No saved templates yet</span>
                     </div>`;
                 return;
             }
@@ -647,12 +683,12 @@
                 textContainer.className = 'flex-1 pr-3 cursor-pointer overflow-hidden';
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-xs truncate block leading-relaxed ${isBlue ? 'text-blue-300' : 'text-gray-300'}`;
+                textSpan.className = `text-[13px] truncate block leading-relaxed ${isBlue ? 'text-blue-300' : 'text-gray-200'}`;
                 textSpan.textContent = item.text;
                 
                 // Info badges buat transisinya
                 const detailsSpan = document.createElement('span');
-                detailsSpan.className = `text-[9px] block mt-0.5 font-medium ${isBlue ? 'text-blue-500/80' : 'text-gray-500'}`;
+                detailsSpan.className = `text-[10px] block mt-1 font-medium tracking-wide ${isBlue ? 'text-blue-500/80' : 'text-gray-500'}`;
                 const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
                 const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
                 const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
@@ -661,7 +697,7 @@
                 textContainer.appendChild(textSpan);
                 textContainer.appendChild(detailsSpan);
                 
-                // Kalau di-klik, load text prompt DAN load settingan transisinya
+                // Kalau di-klik, load text prompt DAN load settingan transisinya ke UI Settings
                 textContainer.onclick = () => { 
                     settingPrompt.value = item.text;
                     if (item.mode === 'real-to-ai') {
@@ -669,8 +705,6 @@
                     } else {
                         promptAiToReal = item.text;
                     }
-                    
-                    // Restore tied transition settings ke UI
                     if (item.trigger) settingTrigger.value = item.trigger;
                     if (item.transition) settingTransition.value = item.transition;
                     if (item.delay !== undefined) settingDelay.value = item.delay;
@@ -699,7 +733,7 @@
             const currentTransition = settingTransition.value;
             const currentDelay = parseFloat(settingDelay.value) || 0;
             
-            // Cek biar ngga save template yang bener-bener kembar 100% (text & settingnya sama persis)
+            // Cek biar ngga save template yang bener-bener kembar 100%
             if (currentVal && !savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
                 savedPrompts.unshift({ 
                     text: currentVal, 
@@ -737,7 +771,6 @@
             
             effectMode = settingEffectMode.value;
             
-            // Simpan transition setting yang lagi aktif di input form
             triggerMethod = settingTrigger.value;
             transitionType = settingTransition.value;
             let parsedDelay = parseFloat(settingDelay.value);
@@ -753,7 +786,6 @@
             let parsedBSDelay = parseFloat(settingBlackScreenDelay.value);
             blackScreenDelaySec = (isNaN(parsedBSDelay) || parsedBSDelay < 3) ? 3 : parsedBSDelay;
 
-            // Commit ke local storage
             localStorage.setItem('google_api_key', googleApiKey);
             localStorage.setItem('google_ai_model', googleAiModel);
             localStorage.setItem('effect_mode', effectMode);
@@ -774,6 +806,151 @@
                 settingsModal.classList.add('hidden');
             }, 300);
         };
+
+        // ==========================================
+        // QUICK SWITCHER LOGIC
+        // ==========================================
+        window.openQuickSwitcher = function() {
+            activeQuickTab = effectMode;
+            updateQuickTabs();
+            renderQuickSwitcherList();
+            
+            const modal = document.getElementById('quick-switcher-modal');
+            const container = document.getElementById('quick-switcher-container');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                container.classList.remove('translate-y-full', 'sm:scale-95');
+                container.classList.add('translate-y-0', 'sm:scale-100');
+            });
+        };
+
+        window.closeQuickSwitcher = function() {
+            const modal = document.getElementById('quick-switcher-modal');
+            const container = document.getElementById('quick-switcher-container');
+            
+            modal.classList.add('opacity-0');
+            container.classList.remove('translate-y-0', 'sm:scale-100');
+            container.classList.add('translate-y-full', 'sm:scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        };
+
+        window.switchQuickTab = function(mode) {
+            activeQuickTab = mode;
+            updateQuickTabs();
+            renderQuickSwitcherList();
+        };
+
+        function updateQuickTabs() {
+            const tabReal = document.getElementById('tab-real-to-ai');
+            const tabAi = document.getElementById('tab-ai-to-real');
+            
+            if (activeQuickTab === 'real-to-ai') {
+                tabReal.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-colors text-black bg-[#ffd60a] shadow-md';
+                tabAi.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-colors text-gray-400 hover:text-gray-200';
+            } else {
+                tabReal.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-colors text-gray-400 hover:text-gray-200';
+                tabAi.className = 'flex-1 py-2.5 text-xs font-bold rounded-xl transition-colors text-blue-900 bg-blue-400 shadow-md';
+            }
+        }
+
+        function renderQuickSwitcherList() {
+            const listContainer = document.getElementById('quick-switcher-list');
+            listContainer.innerHTML = '';
+            
+            const visiblePrompts = savedPrompts.filter(p => p.mode === activeQuickTab);
+            
+            if (visiblePrompts.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-10 opacity-60">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2 text-gray-500"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span class="text-xs font-medium text-gray-400">No saved templates in this mode</span>
+                    </div>`;
+                return;
+            }
+            
+            visiblePrompts.forEach((item) => {
+                const isBlue = item.mode === 'ai-to-real';
+                
+                const divItem = document.createElement('div');
+                divItem.className = `flex flex-col p-4 mb-3 rounded-2xl cursor-pointer active:scale-[0.98] transition-all border ${isBlue ? 'bg-blue-900/20 hover:bg-blue-900/40 border-blue-500/30' : 'bg-white/5 hover:bg-white/10 border-white/10'}`;
+                
+                divItem.onclick = () => applyQuickTemplate(item);
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = `text-[13px] leading-relaxed mb-2.5 ${isBlue ? 'text-blue-200' : 'text-white'}`;
+                textSpan.textContent = item.text;
+                
+                const detailsSpan = document.createElement('span');
+                detailsSpan.className = `text-[10px] font-medium tracking-wider uppercase ${isBlue ? 'text-blue-400' : 'text-gray-400'}`;
+                const trigLabel = item.trigger === 'swipe-up' ? 'Swipe Up' : 'Tap';
+                const effLabel = item.transition === 'none' ? 'Instant' : 'Fade';
+                const delLabel = item.delay !== undefined ? item.delay + 's' : '2s';
+                detailsSpan.innerHTML = `<span class="opacity-70">Config:</span> ${trigLabel} • ${effLabel} • ${delLabel}`;
+                
+                divItem.appendChild(textSpan);
+                divItem.appendChild(detailsSpan);
+                listContainer.appendChild(divItem);
+            });
+        }
+
+        function applyQuickTemplate(template) {
+            // Apply to memory
+            effectMode = template.mode;
+            if (effectMode === 'real-to-ai') {
+                promptRealToAi = template.text;
+            } else {
+                promptAiToReal = template.text;
+            }
+            triggerMethod = template.trigger || 'tap';
+            transitionType = template.transition || 'fade';
+            fadeDelaySec = template.delay !== undefined ? template.delay : 2;
+            
+            // Sync with Settings UI
+            settingEffectMode.value = effectMode;
+            settingPrompt.value = template.text;
+            settingTrigger.value = triggerMethod;
+            settingTransition.value = transitionType;
+            settingDelay.value = fadeDelaySec;
+            
+            // Save to localStorage immediately
+            localStorage.setItem('effect_mode', effectMode);
+            localStorage.setItem('prompt_real_to_ai', promptRealToAi);
+            localStorage.setItem('prompt_ai_to_real', promptAiToReal);
+            localStorage.setItem('fade_delay', fadeDelaySec);
+            localStorage.setItem('transition_type', transitionType);
+            localStorage.setItem('trigger_method', triggerMethod);
+            
+            // Visual feedback & Reset state
+            updateModeUI(); 
+            closeQuickSwitcher();
+            showNotification("✨ Template applied!");
+            
+            // Handle specific logic for ai-to-real
+            if (effectMode === 'ai-to-real') {
+                aiToRealPrepSection.classList.remove('hidden');
+            } else {
+                aiToRealPrepSection.classList.add('hidden');
+                isPrepModeActive = false; 
+            }
+            
+            // Wipe trick data when changing templates to avoid confusion
+            originalImageData = null;
+            generatedImageData = null;
+            isAiReady = false;
+            isTrickCompleted = false;
+            previewState = 'FRONT';
+            saveMagicState();
+            galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
+        }
+        // ==========================================
 
         window.enterPrepMode = function() {
             googleApiKey = settingGoogleApiKey.value.trim();
@@ -1316,7 +1493,7 @@
         });
     </script>
 
-    <!-- Firebase Auth Logic (Background Check) -->
+    <!-- Firebase Auth Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1338,7 +1515,6 @@
             provider = new GoogleAuthProvider();
             setPersistence(auth, browserLocalPersistence);
             
-            // Set global auth instance for AI checker in main script
             window.lucidAuth = auth;
         } catch(e) {
             console.error("Firebase Initialization Error:", e);
