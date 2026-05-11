@@ -71,6 +71,19 @@
             background-size: 1.5em 1.5em;
             padding-right: 2rem !important;
         }
+
+        /* Force modal scroll fix for mobile */
+        #settings-container,
+        #quick-switcher-container {
+            height: auto;
+            max-height: 85vh;
+        }
+
+        #settings-container .overflow-y-auto,
+        #quick-switcher-container .overflow-y-auto {
+            -webkit-overflow-scrolling: touch;
+            overflow-y: scroll !important;
+        }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden text-white select-none bg-black">
@@ -197,7 +210,7 @@
 
     <!-- Quick Switcher Modal -->
     <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
-        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[80vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
+        <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
             <!-- Drag Handle -->
             <div class="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
                 <div class="w-12 h-1.5 bg-gray-600 rounded-full"></div>
@@ -221,7 +234,7 @@
                 </div>
             </div>
             
-            <!-- List (Added flex-1 min-h-0 overflow-y-auto for safe scrolling) -->
+            <!-- List (Added min-h-0 for flexbox scrolling fix) -->
             <div class="p-5 overflow-y-auto overscroll-contain custom-scrollbar flex-1 min-h-0 pb-8" id="quick-switcher-list">
                 <!-- Templates injected here via JS -->
             </div>
@@ -249,11 +262,11 @@
                 </button>
             </div>
             
-            <!-- Modal Body (Scrollable) -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 space-y-7">
+            <!-- Modal Body (Scrollable) - Removed space-y-7, added manual mb-7 to sections -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 min-h-0">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
-                <div class="space-y-4">
+                <div class="mb-7 space-y-4">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Routine & Template</h3>
                     
                     <!-- Effect Mode Selection -->
@@ -335,7 +348,7 @@
                 </div>
 
                 <!-- Section 2: API Configuration -->
-                <div class="space-y-4 pt-5 border-t border-white/5">
+                <div class="mb-7 space-y-4 pt-5 border-t border-white/5">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">API Configuration</h3>
                     
                     <div>
@@ -349,7 +362,7 @@
                 </div>
 
                 <!-- Section 3: Black Screen -->
-                <div class="space-y-4 pt-5 border-t border-white/5">
+                <div class="mb-7 space-y-4 pt-5 border-t border-white/5">
                     <div class="flex justify-between items-center pl-1">
                         <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
