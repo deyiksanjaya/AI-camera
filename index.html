@@ -977,7 +977,7 @@
                     link.click();
                     document.body.removeChild(link);
                     showNotification("Photo saved to device");
-                    setTimeout(() => { window.location.href = 'photos-redirect://'; }, 800);
+                    setTimeout(() => { window.location.href = 'camera://'; }, 800);
                 }
             } catch (error) {
                 console.error("Share failed/cancelled:", error);
