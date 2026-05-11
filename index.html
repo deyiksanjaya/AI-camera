@@ -247,8 +247,7 @@
 
     <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-auto">
-        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] flex flex-col rounded-3xl shadow-2xl border border-white/10 transform scale-95 transition-transform duration-300">
-            
+        <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] rounded-3xl shadow-2xl border border-white/10 transform scale-95 transition-transform duration-300" style="height: 85vh; display: flex; flex-direction: column; overflow: hidden;">            
             <!-- Modal Header -->
             <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
                 <h2 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
@@ -267,7 +266,7 @@
             </div>
             
             <!-- Modal Body (Scrollable) -->
-            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+<div class="p-6 custom-scrollbar space-y-7" style="overflow-y: scroll; -webkit-overflow-scrolling: touch; flex: 1; min-height: 0; height: 0;">
                 
                 <!-- Section 1: Routine, Transition & Prompts -->
                 <div class="mb-7 space-y-4">
