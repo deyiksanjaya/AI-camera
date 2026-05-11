@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en" class="antialiased">
 <head>
@@ -94,11 +95,11 @@
             <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
             <span class="text-[10px] font-bold tracking-[0.2em] text-white/50 uppercase">Secured Doc</span>
         </div>
-        <p class="text-[10px] font-mono text-white/30">V.1.0</p>
+        <p class="text-[10px] font-mono text-white/30">V.1.1</p>
     </div>
 
     <!-- Main Scrollable Area -->
-    <div class="flex-1 overflow-y-auto pb-32 pt-20 px-4 scroll-smooth" id="scroll-container">
+    <div class="flex-1 overflow-y-auto pb-32 pt-20 px-4 scroll-smooth" id="scroll-container" style="-webkit-overflow-scrolling: touch;">
         
         <div class="max-w-lg mx-auto space-y-10">
             
@@ -131,7 +132,7 @@
                     
                     <div class="border-l-2 border-[#ffd60a]/50 pl-4 py-1 mb-6">
                         <p class="text-[12px] text-gray-400 italic leading-relaxed">
-                            "Onyx uses cutting-edge AI to seamlessly alter photos in real-time right on the spectator's own device... remotely morph shadows, change signed cards, or reveal thought-of words in a genuine photo *after* it's been taken."
+                            "Onyx uses cutting-edge AI to seamlessly alter photos in real-time right on the spectator's own device... remotely morph shadows, change signed cards, or reveal thought-of words in a genuine photo <strong>after</strong> it's been taken."
                         </p>
                     </div>
 
@@ -172,18 +173,18 @@
                         </ol>
                     </div>
 
-                    <!-- Prompt Management -->
+                    <!-- Template Editor -->
                     <div class="border-t border-white/10 pt-5">
                         <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                            Prompt Management
+                            Template Editor
                         </h3>
                         <p class="text-[13px] text-gray-400 leading-relaxed mb-3 text-justify">
-                            Lucid utilizes a dual-memory system. Prompts for <strong>Real ➔ AI</strong> and <strong>AI ➔ Real</strong> are saved entirely separate from each other to prevent accidental cross-contamination.
+                            Lucid utilizes a dual-memory system. Templates for <strong>Real ➔ AI</strong> and <strong>AI ➔ Real</strong> are saved entirely separate from each other to prevent accidental cross-contamination.
                         </p>
                         <ul class="text-[13px] text-gray-300 space-y-3 list-disc pl-4 marker:text-gray-600">
-                            <li class="pl-1"><strong>Color Coding:</strong> Yellow UI indicates you are editing a Real ➔ AI prompt. Blue UI indicates an AI ➔ Real prompt.</li>
-                            <li class="pl-1"><strong>Saving Drafts:</strong> Click "Save as Draft" to store frequent prompts. The list below will filter based on the active mode.</li>
+                            <li class="pl-1"><strong>Color Coding:</strong> Yellow UI indicates you are editing a Real ➔ AI template. Blue UI indicates an AI ➔ Real template.</li>
+                            <li class="pl-1"><strong>Tied Configurations:</strong> When you click "Save as Draft" in the <em>Modes & Prompt</em> section, it records not just the AI prompt, but also the currently selected <em>Trigger, Effect, and Delay</em> into one unified template.</li>
                             <li class="pl-1"><strong>Invisible Directives:</strong> Lucid automatically appends hidden instructions (e.g., <em>"photo realistic, keep other details exactly the same"</em>) to ensure the AI output looks like an unedited photograph.</li>
                         </ul>
                     </div>
@@ -192,14 +193,34 @@
                     <div class="border-t border-white/10 pt-5">
                         <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                            Transition Dynamics
+                            Transition
                         </h3>
                         <ul class="text-[13px] text-gray-300 space-y-3 list-disc pl-4 marker:text-gray-600">
                             <li class="pl-1"><strong>Trigger:</strong> Choose <strong>Tap</strong> for a standard touch, or <strong>Swipe Up</strong> to mimic a magical gesture/wave over the device.</li>
-                            <li class="pl-1"><strong>Effect:</strong> Choose <strong>Fade</strong> for a slow, morphing change (ideal for mentalism), or <strong>Instant</strong> for a snappy, jarring change (ideal for visual magic).</li>
-                            <li class="pl-1"><strong>Delay:</strong> Set a timer (in seconds) after the trigger is activated. This allows you to hand the phone to a spectator *after* triggering, letting the magic happen in their hands.</li>
+                            <li class="pl-1"><strong>Effect:</strong> Choose <strong>Fade</strong> for a slow, morphing change, or <strong>Instant</strong> for a snappy, jarring change (ideal for visual magic).</li>
+                            <li class="pl-1"><strong>Delay:</strong> Set a timer (in seconds) after the trigger is activated. This allows you to hand the phone to a spectator <strong>after</strong> triggering, letting the magic happen in their hands.</li>
                         </ul>
                     </div>
+
+                    <!-- Prompt Switcher -->
+                    <div class="border-t border-white/10 pt-5">
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="none">
+                                <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
+                                <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+                                <circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+                            </svg>
+                            Prompt Switcher
+                        </h3>
+                        <p class="text-[13px] text-gray-400 leading-relaxed mb-3">
+                            Tap the 9-dots grid icon in the top-right corner of the main camera view to open the Prompt Switcher.
+                        </p>
+                        <ul class="text-[13px] text-gray-300 space-y-3 list-disc pl-4 marker:text-gray-600">
+                            <li class="pl-1"><strong>Instant Adaptation:</strong> Swap between your saved templates on the fly without having to open the full Settings menu.</li>
+                            <li class="pl-1"><strong>Smart Carousel:</strong> Swipe horizontally to browse templates. Tapping a template instantly applies its prompt and transition mechanics, displaying a yellow checkmark to confirm it is active.</li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
 
