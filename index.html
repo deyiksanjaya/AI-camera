@@ -676,6 +676,7 @@
         }
 
         settingEffectMode.addEventListener('change', () => {
+            // Cancel edit if user switches global mode to prevent accidental overwrites across modes
             if (currentEditIndex > -1) {
                 currentEditIndex = -1;
             }
@@ -745,6 +746,7 @@
 
         window.cancelEdit = function() {
             currentEditIndex = -1;
+            // Restore actual applied states to inputs
             settingEffectMode.value = effectMode;
             settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
             settingTrigger.value = triggerMethod;
@@ -782,7 +784,9 @@
             let activeIndexInList = 0;
 
             visiblePrompts.forEach((item, index) => {
-                const actualIndex = savedPrompts.findIndex(p => p === item);
+                // Find actual global index in savedPrompts array safely
+                const actualIndex = savedPrompts.indexOf(item);
+
                 const isBlue = item.mode === 'ai-to-real';
                 
                 const isActive = (item.mode === currentMode && 
@@ -935,6 +939,7 @@
             if (!currentVal) return;
 
             if (currentEditIndex > -1) {
+                // Update Existing Mode
                 savedPrompts[currentEditIndex] = {
                     text: currentVal, 
                     mode: currentMode,
@@ -943,9 +948,9 @@
                     delay: currentDelay
                 };
                 showNotification("✨ Template updated!");
-                cancelEdit(); 
-                localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
+                cancelEdit(); // Saves to localstorage & updates UI inside cancelEdit
             } else {
+                // Save New Mode
                 if (!savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
                     savedPrompts.unshift({ 
                         text: currentVal, 
@@ -963,7 +968,11 @@
 
         function deletePrompt(index) {
             savedPrompts.splice(index, 1);
-            if (currentEditIndex > index) currentEditIndex--;
+            
+            // Adjust edit index if we delete an item before it in the array
+            if (currentEditIndex > index) {
+                currentEditIndex--;
+            }
             
             localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
             renderPromptList();
@@ -974,16 +983,18 @@
             }
         }
 
-        window.openSettings = function() {
-            currentEditIndex = -1;
+        window.openSettings = function(skipReset = false) {
+            // Only reset forms and cancel edit if we are not passing 'skipReset' flag
+            if (!skipReset) {
+                currentEditIndex = -1; 
+                settingEffectMode.value = effectMode;
+                settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
+                settingTrigger.value = triggerMethod;
+                settingTransition.value = transitionType;
+                settingDelay.value = fadeDelaySec;
+                updateModeUI(); 
+            }
             
-            settingEffectMode.value = effectMode;
-            settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
-            settingTrigger.value = triggerMethod;
-            settingTransition.value = transitionType;
-            settingDelay.value = fadeDelaySec;
-
-            updateModeUI(); 
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
             
@@ -1032,7 +1043,7 @@
             setTimeout(() => {
                 settingsModal.classList.remove('flex');
                 settingsModal.classList.add('hidden');
-                currentEditIndex = -1; 
+                currentEditIndex = -1; // clear edit mode after closing
             }, 300);
         };
 
@@ -1111,7 +1122,7 @@
             let activeIndexInList = 0;
 
             visiblePrompts.forEach((item, index) => {
-                const actualIndex = savedPrompts.findIndex(p => p === item);
+                const actualIndex = savedPrompts.indexOf(item);
                 const isBlue = item.mode === 'ai-to-real';
                 
                 const isActive = (item.mode === effectMode && 
@@ -1136,14 +1147,18 @@
                     containerClass += `bg-white/5 hover:bg-white/10 border-white/10`;
                 }
                 divItem.className = containerClass;
+                
                 divItem.onclick = () => applyQuickTemplate(item);
                 
                 const textSpan = document.createElement('span');
-                textSpan.className = `text-[15px] leading-relaxed mb-3 line-clamp-3 text-center px-2 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
+                textSpan.className = `text-[15px] leading-relaxed mb-4 line-clamp-3 text-center px-4 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
                 
+                const bottomRow = document.createElement('div');
+                bottomRow.className = 'flex items-center justify-center mt-auto';
+                
                 const pillsContainer = document.createElement('div');
-                pillsContainer.className = 'flex items-center justify-center gap-2 mb-4';
+                pillsContainer.className = 'flex items-center justify-center gap-2';
                 
                 const pillClass = isActive ? 'bg-[#ffd60a]/15 text-[#ffd60a] border border-[#ffd60a]/30' :
                                   isBlue ? 'bg-blue-900/40 text-blue-300 border border-blue-500/20' :
@@ -1158,42 +1173,11 @@
                     <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${effLabel}</span>
                     <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${delLabel}</span>
                 `;
-
-                // Action Buttons Row (Bottom Centered)
-                const actionBtns = document.createElement('div');
-                actionBtns.className = 'flex items-center justify-center gap-6 w-full pt-3 mt-auto border-t border-white/10 relative z-10';
-
-                const editBtn = document.createElement('button');
-                editBtn.className = 'text-gray-400 hover:text-blue-400 p-2.5 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
-                editBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-                editBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if(actualIndex > -1) {
-                        closeQuickSwitcher();
-                        openSettings();
-                        setTimeout(() => window.startEditPrompt(actualIndex), 350);
-                    }
-                };
-
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'text-gray-400 hover:text-red-400 p-2.5 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
-                deleteBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if(actualIndex > -1) {
-                        deletePrompt(actualIndex);
-                        // Refresh the UI within Quick Switcher
-                        renderQuickSwitcherList();
-                    }
-                };
-
-                actionBtns.appendChild(editBtn);
-                actionBtns.appendChild(deleteBtn);
                 
+                bottomRow.appendChild(pillsContainer);
                 divItem.appendChild(textSpan);
-                divItem.appendChild(pillsContainer);
-                divItem.appendChild(actionBtns);
-                
+                divItem.appendChild(bottomRow);
+
                 // Checkmark di pojok kanan lurus area action buttons
                 if(isActive) {
                     const checkIcon = document.createElement('div');
@@ -1201,6 +1185,36 @@
                     checkIcon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
                     divItem.appendChild(checkIcon);
                 }
+
+                // Action Buttons Row (Bottom Centered)
+                const actionBtns = document.createElement('div');
+                actionBtns.className = 'flex items-center justify-center gap-6 w-full pt-3 mt-4 border-t border-white/10 relative z-10';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'text-gray-400 hover:text-blue-400 p-2 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
+                editBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if(actualIndex > -1) {
+                        closeQuickSwitcher();
+                        window.startEditPrompt(actualIndex);
+                        openSettings(true); // Open settings bypassing the reset, so it shows the edit state
+                    }
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'text-gray-400 hover:text-red-400 p-2 rounded-full hover:bg-white/10 transition-all flex items-center justify-center';
+                deleteBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    if(actualIndex > -1) {
+                        deletePrompt(actualIndex);
+                    }
+                };
+
+                actionBtns.appendChild(editBtn);
+                actionBtns.appendChild(deleteBtn);
+                divItem.appendChild(actionBtns);
                 
                 wrapper.appendChild(divItem);
                 listContainer.appendChild(wrapper);
@@ -1220,6 +1234,7 @@
                 }
             });
 
+            // Update titik waktu di scroll
             listContainer.onscroll = () => {
                 const itemWidth = listContainer.clientWidth; 
                 if (itemWidth > 0) {
@@ -1243,6 +1258,8 @@
         }
 
         function applyQuickTemplate(template) {
+            currentEditIndex = -1; // Reset edit state safely
+            
             // Apply to memory
             effectMode = template.mode;
             if (effectMode === 'real-to-ai') {
