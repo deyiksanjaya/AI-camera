@@ -273,7 +273,60 @@
                     </div>
                 </div>
 
-                <!-- Section 2: API Configuration -->
+                <!-- Section 2: Credits & Usage Estimation -->
+                <div class="space-y-4 pt-5 border-t border-white/5">
+                    <h3 class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest pl-1 mb-3 flex items-center gap-2">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                        Credits & Usage
+                    </h3>
+                    
+                    <div class="flex gap-2">
+                        <div class="flex-[0.6]">
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Currency</label>
+                            <select id="setting-currency" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
+                                <option value="USD">USD</option>
+                                <option value="IDR">IDR</option>
+                                <option value="JPY">JPY</option>
+                                <option value="KRW">KRW</option>
+                                <option value="CNY">CNY</option>
+                                <option value="SGD">SGD</option>
+                                <option value="MYR">MYR</option>
+                                <option value="THB">THB</option>
+                                <option value="PHP">PHP</option>
+                                <option value="VND">VND</option>
+                                <option value="INR">INR</option>
+                                <option value="AUD">AUD</option>
+                                <option value="NZD">NZD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="CHF">CHF</option>
+                                <option value="CAD">CAD</option>
+                                <option value="BRL">BRL</option>
+                                <option value="MXN">MXN</option>
+                                <option value="AED">AED</option>
+                                <option value="SAR">SAR</option>
+                            </select>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm text-gray-300 mb-2 font-medium">Credit Balance</label>
+                            <input type="number" id="setting-credit" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors" placeholder="0" step="any">
+                        </div>
+                    </div>
+
+                    <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex flex-col gap-2 relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-16 h-16 bg-blue-500/10 rounded-full blur-xl translate-x-1/2 -translate-y-1/2"></div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-400">Est. Cost / Trick:</span>
+                            <span id="est-cost" class="font-mono text-white">...</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm mt-1 border-t border-white/5 pt-2">
+                            <span class="text-gray-300 font-medium">Tricks Remaining:</span>
+                            <span id="est-remaining" class="font-bold text-[#34d399] text-base">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: API Configuration -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1">API Configuration</h3>
                     
@@ -287,7 +340,7 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Transition Settings -->
+                <!-- Section 4: Transition Settings -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-3">Transition Settings</h3>
                     
@@ -313,7 +366,7 @@
                     </div>
                 </div>
 
-                <!-- Section 4: Black Screen -->
+                <!-- Section 5: Black Screen -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <div class="flex justify-between items-center pl-1">
                         <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
@@ -331,7 +384,7 @@
                     </div>
                 </div>
 
-                <!-- Section 5: Account (Logout only, because settings is only reachable if logged in) -->
+                <!-- Section 6: Account (Logout only) -->
                 <div class="space-y-4 pt-5 border-t border-white/5">
                     <div class="flex items-center justify-center gap-2 text-xs text-green-400 bg-green-400/10 py-2.5 rounded-xl border border-green-400/20">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
@@ -479,6 +532,18 @@
             } catch(e) { savedPrompts = []; }
         }
 
+        // Token Estimator Logic
+        let exchangeRates = { USD: 1, IDR: 16350 }; 
+        let userCurrency = localStorage.getItem('user_currency') || 'USD';
+        let userCredit = parseFloat(localStorage.getItem('user_credit')) || 0;
+        let lastImageW = parseInt(localStorage.getItem('last_img_w')) || 800;
+        let lastImageH = parseInt(localStorage.getItem('last_img_h')) || 600;
+
+        const settingCurrency = document.getElementById('setting-currency');
+        const settingCredit = document.getElementById('setting-credit');
+        const estCostEl = document.getElementById('est-cost');
+        const estRemainingEl = document.getElementById('est-remaining');
+
         settingGoogleApiKey.value = googleApiKey;
         settingGoogleModel.value = googleAiModel;
         settingEffectMode.value = effectMode;
@@ -487,6 +552,80 @@
         settingTrigger.value = triggerMethod;
         settingBlackScreen.checked = isBlackScreenEnabled;
         settingBlackScreenDelay.value = blackScreenDelaySec;
+        settingCurrency.value = userCurrency;
+        settingCredit.value = userCredit > 0 ? userCredit : '';
+
+        async function initExchangeRates() {
+            try {
+                const res = await fetch('https://open.er-api.com/v6/latest/USD');
+                const data = await res.json();
+                if (data.result === 'success') {
+                    exchangeRates = data.rates;
+                }
+            } catch(e) {
+                console.warn("Using offline fallback exchange rates", e);
+            }
+            updateEstimationUI();
+        }
+        initExchangeRates();
+
+        function calculateCurrentCostLocal() {
+            const maxLong = 3072;
+            const maxShort = 768;
+            let scale = 1;
+
+            if (Math.max(lastImageW, lastImageH) > maxLong) {
+                scale = Math.min(scale, maxLong / Math.max(lastImageW, lastImageH));
+            }
+            if (Math.min(lastImageW, lastImageH) > maxShort) {
+                scale = Math.min(scale, maxShort / Math.min(lastImageW, lastImageH));
+            }
+
+            const scaledW = Math.round(lastImageW * scale);
+            const scaledH = Math.round(lastImageH * scale);
+
+            const tilesX = Math.ceil(scaledW / 768);
+            const tilesY = Math.ceil(scaledH / 768);
+            const totalTokens = (tilesX * tilesY) * 258;
+            const costUSD = (totalTokens / 1000) * 0.00125;
+
+            const rate = exchangeRates[userCurrency] || 1;
+            return costUSD * rate;
+        }
+
+        function updateEstimationUI() {
+            const costLocal = calculateCurrentCostLocal();
+            const costStr = new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: userCurrency,
+                maximumFractionDigits: userCurrency === 'IDR' ? 0 : 6
+            }).format(costLocal);
+
+            estCostEl.textContent = costStr;
+
+            let remaining = 0;
+            if (costLocal > 0 && userCredit > 0) {
+                remaining = Math.floor(userCredit / costLocal);
+            }
+            estRemainingEl.textContent = `${Math.max(0, remaining)}x`;
+        }
+
+        settingCurrency.addEventListener('change', (e) => {
+            userCurrency = e.target.value;
+            localStorage.setItem('user_currency', userCurrency);
+            
+            // Format existing credit if moving to/from IDR to look nicer
+            if (userCredit > 0) {
+                settingCredit.value = userCurrency === 'IDR' ? Math.round(userCredit) : parseFloat(userCredit.toFixed(6));
+            }
+            updateEstimationUI();
+        });
+
+        settingCredit.addEventListener('input', (e) => {
+            userCredit = parseFloat(e.target.value) || 0;
+            localStorage.setItem('user_credit', userCredit);
+            updateEstimationUI();
+        });
 
         // --- Persistence Helper ---
         function saveMagicState() {
@@ -683,6 +822,7 @@
 
         window.openSettings = function() {
             updateModeUI(); 
+            updateEstimationUI();
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
             
@@ -756,6 +896,23 @@
         };
 
         async function generateAiImage(base64Data) {
+            // Cek apakah user udah login secara silent
+            if (!window.lucidAuth || !window.lucidAuth.currentUser) {
+                isAiReady = false;
+                flashAutoText.classList.add('opacity-0');
+                if (!galleryModal.classList.contains('hidden')) {
+                    previewLoadingDot.classList.add('opacity-0');
+                }
+                
+                showNotification("⚠️ Login via Settings required for AI Magic.");
+                
+                if (isPrepModeActive) {
+                    prepAiStatus.textContent = 'Login Required';
+                    prepAiStatus.classList.replace('text-[#ffd60a]', 'text-red-400');
+                }
+                return;
+            }
+
             const activeKey = googleApiKey;
             const activeModel = googleAiModel;
 
@@ -796,6 +953,24 @@
                     generatedImageData = `data:image/png;base64,${imgBase}`;
                     const tempImg = new Image();
                     tempImg.onload = () => {
+                        // --- Logic Deduct Credits berdasarkan image yang baru di-generate ---
+                        lastImageW = tempImg.naturalWidth;
+                        lastImageH = tempImg.naturalHeight;
+                        localStorage.setItem('last_img_w', lastImageW);
+                        localStorage.setItem('last_img_h', lastImageH);
+                        
+                        const costLocal = calculateCurrentCostLocal();
+                        userCredit = Math.max(0, userCredit - costLocal);
+                        localStorage.setItem('user_credit', userCredit);
+                        
+                        // Update UI form input kredit secara instan kalau settingan lagi kebuka
+                        if (userCredit > 0) {
+                            settingCredit.value = userCurrency === 'IDR' ? Math.round(userCredit) : parseFloat(userCredit.toFixed(6));
+                        } else {
+                            settingCredit.value = 0;
+                        }
+                        updateEstimationUI();
+
                         isAiReady = true;
                         saveMagicState(); 
 
@@ -977,7 +1152,7 @@
                     link.click();
                     document.body.removeChild(link);
                     showNotification("Photo saved to device");
-                    setTimeout(() => { window.location.href = 'camera://'; }, 800);
+                    setTimeout(() => { window.location.href = 'photos-redirect://'; }, 800);
                 }
             } catch (error) {
                 console.error("Share failed/cancelled:", error);
@@ -1190,7 +1365,6 @@
                 galleryModal.classList.add('hidden');
                 galleryModal.classList.remove('flex');
                 
-                // Only turn camera back on if no overlay is shown
                 if(document.getElementById('login-overlay').style.display === 'none'){
                     window.initCamera();
                 }
@@ -1254,7 +1428,6 @@
             } 
         }
 
-        // Initialize camera instantly on load ONLY if cache says we are logged in
         window.addEventListener('load', () => {
             if (localStorage.getItem('lucid_auth_status') === 'true') {
                 window.initCamera();
@@ -1262,22 +1435,20 @@
         });
     </script>
 
-    <!-- Firebase Auth Logic -->
+    <!-- Firebase Auth Logic (Background Check) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // =========================================================================
-        // MASUKIN FIREBASE CONFIG KAMU DI SINI
-        // =========================================================================
+        // FIREBASE CONFIG HAS BEEN ADDED HERE
         const firebaseConfig = {
-  apiKey: "AIzaSyC-0oRlqQ7odJJYXIyaQX_MlAUNcJKk0WU",
-  authDomain: "lucidbyheri.firebaseapp.com",
-  projectId: "lucidbyheri",
-  storageBucket: "lucidbyheri.firebasestorage.app",
-  messagingSenderId: "282347124526",
-  appId: "1:282347124526:web:552c724fae9fc433912cbf"
-};
+            apiKey: "AIzaSyC-0oRlqQ7odJJYXIyaQX_MlAUNcJKk0WU",
+            authDomain: "lucidbyheri.firebaseapp.com",
+            projectId: "lucidbyheri",
+            storageBucket: "lucidbyheri.firebasestorage.app",
+            messagingSenderId: "282347124526",
+            appId: "1:282347124526:web:552c724fae9fc433912cbf"
+        };
 
         let app, auth, provider;
 
@@ -1286,6 +1457,9 @@
             auth = getAuth(app);
             provider = new GoogleAuthProvider();
             setPersistence(auth, browserLocalPersistence);
+            
+            // Set global auth instance for AI checker in main script
+            window.lucidAuth = auth;
         } catch(e) {
             console.error("Firebase Initialization Error:", e);
         }
@@ -1300,11 +1474,9 @@
         if(auth) {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    // Update Cache 
                     localStorage.setItem('lucid_auth_status', 'true');
                     userEmailDisplay.textContent = user.email || 'Verified User';
                     
-                    // Kalau overlay login masih muncul (misal baru aja login), transisikan buat ditutup
                     if (loginOverlay.style.display !== 'none') {
                         loginLoading.textContent = "Login Successful!";
                         loginLoading.classList.remove('animate-pulse');
@@ -1319,7 +1491,6 @@
                         }, 500);
                     }
                 } else {
-                    // Kalo blm login, atau token mati/logout di device lain
                     localStorage.setItem('lucid_auth_status', 'false');
                     
                     loginOverlay.style.display = 'flex';
