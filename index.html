@@ -6,11 +6,8 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- App Icons -->
     <link rel="icon" type="image/png" href="icon-512.png">
     <link rel="apple-touch-icon" href="icon-512.png">
-    
     <title>Lucid</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -28,22 +25,17 @@
             -webkit-appearance: none !important;
         }
         video { pointer-events: none; }
-        
         .shutter-flash { animation: flash 0.15s ease-out; }
         @keyframes flash {
             0% { opacity: 0; }
             50% { opacity: 1; }
             100% { opacity: 0; }
         }
-        
-        /* Input fix for mobile */
         input, textarea, select {
             font-size: 16px !important;
             user-select: text !important;
             -webkit-user-select: text !important;
         }
-
-        /* Custom Scrollbar for Settings */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
@@ -57,8 +49,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3); 
         }
-
-        /* Hide Scrollbar for Carousel */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -66,13 +56,9 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
-        /* Prevent default touch actions on gallery for custom zoom */
         #gallery-modal {
             touch-action: none;
         }
-        
-        /* Custom Select Arrow */
         select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
@@ -80,8 +66,6 @@
             background-size: 1.5em 1.5em;
             padding-right: 2rem !important;
         }
-
-        /* Force modal scroll fix for Safari iOS */
         #settings-container,
         #quick-switcher-container {
             max-height: 85vh !important;
@@ -90,7 +74,6 @@
             display: flex;
             flex-direction: column;
         }
-
         #settings-container .overflow-y-auto,
         #quick-switcher-container .overflow-y-auto {
             -webkit-overflow-scrolling: touch;
@@ -99,67 +82,30 @@
 </head>
 <body class="h-screen w-screen overflow-hidden text-white select-none bg-black">
 
-    <!-- Login Overlay -->
-    <div id="login-overlay" class="fixed inset-0 bg-[#1c1c1d] z-[300] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="flex flex-col items-center justify-center w-full max-w-sm px-6">
-            <h1 class="text-4xl font-bold text-white mb-2 tracking-widest flex items-center gap-3">
-                <img src="icon-512.png" alt="Lucid Logo" class="w-10 h-10 rounded-xl shadow-lg object-cover">
-                LUCID
-            </h1>
-            <p class="text-gray-400 mb-10 text-sm text-center tracking-wide">Login to access the app.</p>
-            
-            <button id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black px-6 py-4 rounded-xl font-bold active:scale-[0.98] transition-all shadow-lg">
-                <svg width="20" height="20" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                </svg>
-                Continue with Google
-            </button>
-            <div id="login-loading" class="mt-5 text-[#ffd60a] text-sm font-medium tracking-wide animate-pulse">Checking credentials...</div>
-        </div>
-    </div>
-
-    <!-- Script Instan untuk Skip Login Screen kalau udah ada cache -->
-    <script>
-        if (localStorage.getItem('lucid_auth_status') === 'true') {
-            document.getElementById('login-overlay').style.display = 'none';
-        }
-    </script>
-
-    <!-- Video Stream Fullscreen -->
     <video id="camera-stream" autoplay playsinline muted class="fixed inset-0 w-full h-full object-cover z-0"></video>
     
-    <!-- Flash Overlay -->
     <div id="flash-overlay" class="fixed inset-0 bg-black z-20 opacity-0 pointer-events-none"></div>
 
-    <!-- Notification Banner -->
     <div id="notification-banner" class="fixed top-[-100px] left-1/2 -translate-x-1/2 bg-[#1c1c1d]/90 text-white px-5 py-3 rounded-full flex items-center gap-3 shadow-2xl transition-all duration-500 ease-out z-[150] pointer-events-none border border-white/10 w-max max-w-[90%]">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
-        <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate">Info</span>
+        <span id="notification-text" class="text-[14px] font-semibold tracking-wide truncate"></span>
     </div>
 
-    <!-- Top Solid Translucent Background -->
     <div class="fixed top-0 left-0 w-full h-[75px] bg-black/60 pointer-events-none z-0"></div>
 
-    <!-- Top Right Controls -->
     <div class="fixed top-[80px] right-4 bg-black/50 rounded-full px-3.5 py-2 flex items-center gap-4 z-10 border border-white/10">
-        <!-- Moon -->
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
-        <!-- Flash A -->
         <div class="relative flex items-center justify-center">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1.5" stroke-linejoin="round">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             <span id="flash-auto-text" class="absolute -right-1 -bottom-1 text-[9px] font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,1)] leading-none tracking-tighter transition-opacity duration-300">A</span>
         </div>
-        <!-- Grid Dots (Trigger for Prompt Switcher) -->
-        <div onclick="openQuickSwitcher()" class="cursor-pointer active:scale-90 transition-transform p-1 -m-1">
+        <div onclick="window.openQuickSwitcher()" class="cursor-pointer active:scale-90 transition-transform p-1 -m-1">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
                 <circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/>
                 <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
@@ -168,11 +114,8 @@
         </div>
     </div>
 
-    <!-- Bottom Controls Container -->
     <div class="fixed bottom-0 left-0 w-full z-10 flex flex-col pointer-events-none">
-        <!-- Floating Elements Area -->
         <div class="w-full flex flex-col items-center pb-4">
-            <!-- Zoom Controls -->
             <div class="flex items-center justify-center gap-5 mb-5 pointer-events-auto">
                 <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">0.5</span>
                 <div class="w-9 h-9 bg-[#1c1c1d]/80 rounded-full flex items-center justify-center border border-white/10 cursor-pointer shadow-lg backdrop-blur-md">
@@ -183,7 +126,6 @@
                 <span class="text-[13px] font-medium text-white/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] cursor-pointer hover:text-[#ffd60a] transition-colors">8</span>
             </div>
 
-            <!-- Shutter Button -->
             <div class="flex justify-center pointer-events-auto">
                 <div id="shutter-btn" class="w-[70px] h-[70px] rounded-full border-[3px] border-white/90 flex items-center justify-center cursor-pointer active:scale-95 transition-transform bg-transparent">
                     <div class="w-[56px] h-[56px] bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,0.4)]"></div>
@@ -191,24 +133,20 @@
             </div>
         </div>
 
-        <!-- Black Translucent Bottom Bar -->
         <div class="w-full h-[100px] bg-black/60 flex justify-between items-center px-6 pointer-events-auto pb-safe">
-            <!-- Gallery -->
             <div id="gallery-btn" class="w-11 h-11 rounded-full overflow-hidden cursor-pointer active:scale-95 transition-transform flex-shrink-0 border border-white/20 bg-zinc-800 shadow-lg relative">
-                <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="Gallery">
+                <img id="gallery-thumbnail" src="" class="w-full h-full object-cover" alt="">
             </div>
             
-            <!-- Modes -->
             <div class="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-2 py-1.5 border border-white/10 shadow-lg">
                 <span class="px-4 py-1.5 rounded-full text-white/70 text-[13px] font-semibold tracking-wider cursor-pointer hover:text-white transition-colors">VIDEO</span>
                 
-                <div class="bg-black/60 rounded-full px-4 py-1.5 border border-white/10 cursor-pointer flex items-center justify-center shadow-inner" onclick="openSettings()">
+                <div class="bg-black/60 rounded-full px-4 py-1.5 border border-white/10 cursor-pointer flex items-center justify-center shadow-inner" onclick="window.openSettings()">
                     <span class="text-[#ffd60a] text-[13px] font-semibold tracking-wider">PHOTO</span>
                 </div>
             </div>
             
-            <!-- Flip Camera -->
-            <div class="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-white cursor-pointer active:bg-white/20 active:scale-95 transition-all" onclick="toggleCamera()">
+            <div class="w-11 h-11 rounded-full bg-black/40 border border-white/10 flex items-center justify-center text-white cursor-pointer active:bg-white/20 active:scale-95 transition-all" onclick="window.toggleCamera()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="17 1 21 5 17 9"></polyline>
                     <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
@@ -219,51 +157,40 @@
         </div>
     </div>
 
-    <!-- Prompt Switcher Modal (Carousel Version) -->
     <div id="quick-switcher-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden items-end sm:items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-auto">
         <div id="quick-switcher-container" class="bg-[#1c1c1d] w-full max-w-md flex flex-col rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform translate-y-full sm:translate-y-0 sm:scale-95 transition-transform duration-300">
-            <!-- Drag Handle -->
             <div class="w-full flex justify-center pt-3 pb-1 sm:hidden shrink-0">
                 <div class="w-12 h-1.5 bg-gray-600 rounded-full"></div>
             </div>
             
-            <!-- Header & Tabs -->
             <div class="px-6 py-4 flex flex-col gap-4 shrink-0">
                 <div class="flex justify-between items-center">
                     <h2 class="text-lg font-bold text-white tracking-wide">Prompt Switcher</h2>
-                    <button onclick="closeQuickSwitcher()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
+                    <button onclick="window.closeQuickSwitcher()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
                 </div>
-                <!-- Tabs -->
                 <div class="flex bg-black/40 p-1 rounded-xl border border-white/5">
-                    <button id="tab-real-to-ai" onclick="switchQuickTab('real-to-ai')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors text-black bg-[#ffd60a]">REAL ➔ AI</button>
-                    <button id="tab-ai-to-real" onclick="switchQuickTab('ai-to-real')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-gray-300">AI ➔ REAL</button>
+                    <button id="tab-real-to-ai" onclick="window.switchQuickTab('real-to-ai')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors text-black bg-[#ffd60a]">REAL ➔ AI</button>
+                    <button id="tab-ai-to-real" onclick="window.switchQuickTab('ai-to-real')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-gray-300">AI ➔ REAL</button>
                 </div>
             </div>
             
-            <!-- Carousel Container -->
             <div class="relative w-full flex-1 flex flex-col min-h-0 mt-2">
-                <!-- The Scrollable Carousel -->
                 <div id="quick-switcher-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
-                    <!-- Carousel Items Injected Here via JS -->
                 </div>
-                <!-- Pagination Dots (Instagram style) -->
                 <div id="quick-switcher-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0 pb-8">
-                    <!-- Dots Injected Here via JS -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- AI Settings Modal -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300 pointer-events-auto">
         <div id="settings-container" class="bg-[#1c1c1d] w-full max-w-[95%] sm:max-w-[400px] flex flex-col rounded-3xl shadow-2xl border border-white/10 overflow-hidden transform scale-95 transition-transform duration-300">
             
-            <!-- Modal Header -->
             <div class="px-6 py-5 border-b border-white/5 flex justify-between items-center shrink-0 bg-gradient-to-b from-white/5 to-transparent">
                 <h2 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -272,7 +199,7 @@
                     </svg>
                     Settings
                 </h2>
-                <button onclick="closeSettings()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
+                <button onclick="window.closeSettings()" class="text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full p-2 transition-colors">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -280,14 +207,11 @@
                 </button>
             </div>
             
-            <!-- Modal Body (Scrollable) -->
             <div class="p-6 custom-scrollbar flex-1 min-h-0 overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
                 
-                <!-- Section 1: Routine, Transition & Prompts -->
                 <div class="mb-7">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Modes & Prompt</h3>
                     
-                    <!-- Effect Mode Selection -->
                     <div class="mb-4">
                         <select id="setting-effect-mode" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
                             <option value="real-to-ai">Mode: Real ➔ AI</option>
@@ -295,7 +219,6 @@
                         </select>
                     </div>
 
-                    <!-- CONDITIONAL: AI to Real Routine Prep -->
                     <div id="ai-to-real-prep-section" class="hidden bg-blue-900/10 p-4 rounded-xl border border-blue-500/20 mb-4">
                         <div class="mb-3">
                             <h4 class="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">Prepare AI to Real Photo</h4>
@@ -303,12 +226,11 @@
                                 Pre-capture the photo backstage. The AI-generated image will be ready on standby in the gallery thumbnail.
                             </p>
                         </div>
-                        <button onclick="enterPrepMode()" class="w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-lg py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30 shadow-sm mt-2">
+                        <button onclick="window.enterPrepMode()" class="w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-lg py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30 shadow-sm mt-2">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                             Take Photo
                         </button>
                         
-                        <!-- Preview Box -->
                         <div id="prep-preview-container" class="hidden mt-3 relative w-full h-32 bg-black/40 rounded-lg border border-white/10 overflow-hidden flex flex-col items-center justify-center shadow-inner">
                             <img id="prep-preview-img" src="" class="absolute inset-0 w-full h-full object-cover opacity-60">
                             <div class="relative z-10 flex flex-col items-center justify-center bg-black/60 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/5">
@@ -317,7 +239,6 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic Prompt Inputs & Tied Transitions -->
                     <div class="pt-4 border-t border-white/5">
                         <div class="flex justify-between items-center pl-1 mb-3">
                             <h3 id="prompt-section-title" class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest flex items-center gap-1.5">
@@ -326,7 +247,6 @@
                             </h3>
                         </div>
 
-                        <!-- Tied Transition Settings -->
                         <div class="flex gap-2 mb-3 bg-black/20 p-2.5 rounded-xl border border-white/5">
                             <div class="flex-[1.2]">
                                 <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider">Trigger</label>
@@ -348,38 +268,32 @@
                             </div>
                         </div>
                         
-                        <!-- The Prompt -->
                         <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your prompt here..."></textarea>
                         
                         <div class="flex gap-2">
-                            <button id="save-prompt-btn" onclick="saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
+                            <button id="save-prompt-btn" onclick="window.saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                                 Save as Draft
                             </button>
-                            <button id="cancel-edit-btn" onclick="cancelEdit()" class="hidden px-4 flex items-center justify-center bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-xl font-medium transition-all text-sm border border-white/10">
+                            <button id="cancel-edit-btn" onclick="window.cancelEdit()" class="hidden px-4 flex items-center justify-center bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-xl font-medium transition-all text-sm border border-white/10">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
 
-                        <!-- The Prompt List (Carousel in Settings) -->
                         <div class="pt-5 border-t border-white/5 mt-4 -mx-6">
                             <label class="block text-sm text-gray-400 mb-3 font-medium px-6">Saved Templates</label>
                             <div class="relative w-full flex flex-col min-h-0">
                                 <div id="prompt-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
-                                    <!-- Templates -->
                                 </div>
                                 <div id="settings-prompt-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0">
-                                    <!-- Dots -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section 2: API Configuration -->
                 <div class="mb-7 pt-5 border-t border-white/5">
                     <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">API Configuration</h3>
-                    
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
@@ -392,7 +306,6 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Black Screen -->
                 <div class="mb-7 pt-5 border-t border-white/5">
                     <div class="flex justify-between items-center pl-1 mb-4">
                         <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
@@ -410,22 +323,22 @@
                     </div>
                 </div>
 
-                <!-- Section 4: Account (Logout only) -->
                 <div class="pt-5 border-t border-white/5 pb-2">
-                    <div class="flex items-center justify-center gap-2 text-xs text-green-400 bg-green-400/10 py-2.5 rounded-xl border border-green-400/20 mb-4">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        <span id="user-email-display" class="truncate max-w-[250px] font-medium">Verified User</span>
+                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">License Activation</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <input type="text" id="setting-license-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-blue-400 focus:bg-black/60 transition-colors placeholder-gray-600 font-mono uppercase" placeholder="Enter License Code...">
+                        </div>
+                        <button id="verify-license-btn" class="w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30">
+                            Verify License
+                        </button>
+                        <div id="license-status" class="text-xs text-center font-medium h-4"></div>
                     </div>
-                    <button id="logout-btn" class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-red-500/20">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                        Logout Account
-                    </button>
                 </div>
             </div>
 
-            <!-- Modal Footer with Save & Tutorial Buttons -->
             <div class="p-6 border-t border-white/5 shrink-0 bg-black/20 flex flex-col gap-3">
-                <button onclick="closeSettings()" class="w-full bg-[#ffd60a] hover:bg-[#e6c100] text-black font-bold rounded-xl py-3.5 active:scale-[0.98] transition-all touch-manipulation shadow-[0_4px_15px_rgba(255,214,10,0.3)]">Save & Close</button>
+                <button onclick="window.closeSettings()" class="w-full bg-[#ffd60a] hover:bg-[#e6c100] text-black font-bold rounded-xl py-3.5 active:scale-[0.98] transition-all touch-manipulation shadow-[0_4px_15px_rgba(255,214,10,0.3)]">Save & Close</button>
                 <a href="tutorial.html" class="w-full flex items-center justify-center gap-2 bg-transparent text-gray-400 hover:text-white font-medium py-2.5 rounded-xl active:scale-[0.98] transition-all text-sm">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     Tutorial & Tips
@@ -434,13 +347,12 @@
         </div>
     </div>
 
-    <!-- Fullscreen Gallery Modal dengan Shape Shift Logic -->
     <div id="gallery-modal" class="fixed inset-0 z-[100] hidden items-center justify-center cursor-pointer touch-none bg-transparent">
         
         <div id="gallery-anim-wrapper" class="absolute bg-black overflow-hidden flex items-center justify-center origin-center">
             <div id="zoom-container" class="relative w-full h-full flex items-center justify-center origin-center">
-                <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="Generated">
-                <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="Original">
+                <img id="gallery-generated" src="" class="absolute w-full h-full object-contain z-10 pointer-events-none" alt="">
+                <img id="gallery-original" src="" class="absolute w-full h-full object-contain z-20 pointer-events-none" alt="">
             </div>
         </div>
 
@@ -450,8 +362,24 @@
 
     <canvas id="photo-canvas" class="hidden"></canvas>
 
-    <!-- Main Logic Script -->
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-0oRlqQ7odJJYXIyaQX_MlAUNcJKk0WU",
+            authDomain: "lucidbyheri.firebaseapp.com",
+            projectId: "lucidbyheri",
+            storageBucket: "lucidbyheri.firebasestorage.app",
+            messagingSenderId: "282347124526",
+            appId: "1:282347124526:web:552c724fae9fc433912cbf"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let isLicenseValid = false;
+
         function initPWA() {
             const manifestContent = {
                 name: "Lucid", short_name: "Lucid", start_url: ".", display: "standalone",
@@ -464,7 +392,6 @@
         }
         initPWA();
 
-        // --- Core Application Logic ---
         const videoElement = document.getElementById('camera-stream');
         const shutterBtn = document.getElementById('shutter-btn');
         const flashOverlay = document.getElementById('flash-overlay');
@@ -484,7 +411,6 @@
         const previewLoadingDot = document.getElementById('preview-loading-dot');
         const blackScreenOverlay = document.getElementById('black-screen-overlay');
         
-        // Settings Elements
         const settingsModal = document.getElementById('settings-modal');
         const settingsContainer = document.getElementById('settings-container');
         const settingGoogleApiKey = document.getElementById('setting-google-api-key');
@@ -510,10 +436,13 @@
         const canvas = document.getElementById('photo-canvas');
         const ctx = canvas.getContext('2d');
 
+        const licenseInput = document.getElementById('setting-license-key');
+        const verifyLicenseBtn = document.getElementById('verify-license-btn');
+        const licenseStatus = document.getElementById('license-status');
+
         let currentFacingMode = 'environment'; 
         let currentStream = null;
         
-        // State Variabels
         let originalImageData = null;
         let generatedImageData = null;
         let isAiReady = false;
@@ -522,11 +451,10 @@
         let previewState = 'FRONT'; 
         let blackScreenTimer = null;
         let activeQuickTab = 'real-to-ai';
-        let currentEditIndex = -1; // State for template editing
+        let currentEditIndex = -1; 
         
         galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
 
-        // --- Data Migration & Init Load ---
         let googleApiKey = localStorage.getItem('google_api_key') || "";
         let googleAiModel = localStorage.getItem('google_ai_model') || "gemini-3.1-flash-image-preview";
         let effectMode = localStorage.getItem('effect_mode') || 'real-to-ai';
@@ -546,7 +474,6 @@
         let blackScreenDelaySec = storedBSDelay !== null ? parseFloat(storedBSDelay) : 3;
         if (isNaN(blackScreenDelaySec) || blackScreenDelaySec < 3) blackScreenDelaySec = 3;
 
-        // Migrasi list prompt
         let rawSaved = localStorage.getItem('saved_prompts');
         let savedPrompts = [];
         if (rawSaved) {
@@ -575,8 +502,64 @@
         settingTrigger.value = triggerMethod;
         settingBlackScreen.checked = isBlackScreenEnabled;
         settingBlackScreenDelay.value = blackScreenDelaySec;
+        
+        let savedLicense = localStorage.getItem('lucid_license') || '';
+        if(savedLicense) licenseInput.value = savedLicense;
 
-        // --- Persistence Helper ---
+        async function verifyLicenseStatus(silent = false) {
+            const code = licenseInput.value.trim().toUpperCase();
+            if(!code) {
+                isLicenseValid = false;
+                licenseStatus.textContent = '';
+                localStorage.removeItem('lucid_license');
+                return;
+            }
+
+            if(!silent) {
+                verifyLicenseBtn.disabled = true;
+                verifyLicenseBtn.textContent = 'Verifying...';
+                verifyLicenseBtn.classList.add('opacity-50');
+            }
+
+            try {
+                const docRef = doc(db, 'licenses', code);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    isLicenseValid = true;
+                    localStorage.setItem('lucid_license', code);
+                    licenseStatus.textContent = 'License is Valid';
+                    licenseStatus.className = 'text-xs text-center mt-2 font-medium text-green-400';
+                    if(!silent) showNotification("✨ License verified successfully.");
+                } else {
+                    isLicenseValid = false;
+                    localStorage.removeItem('lucid_license');
+                    licenseStatus.textContent = 'Invalid or Expired License';
+                    licenseStatus.className = 'text-xs text-center mt-2 font-medium text-red-400';
+                    if(!silent) showNotification("⚠️ License is invalid.");
+                }
+            } catch (error) {
+                console.error("License verification error:", error);
+                if (savedLicense === code) {
+                    isLicenseValid = true;
+                    licenseStatus.textContent = 'Offline (Cached License)';
+                    licenseStatus.className = 'text-xs text-center mt-2 font-medium text-[#ffd60a]';
+                }
+            } finally {
+                if(!silent) {
+                    verifyLicenseBtn.disabled = false;
+                    verifyLicenseBtn.textContent = 'Verify License';
+                    verifyLicenseBtn.classList.remove('opacity-50');
+                }
+            }
+        }
+
+        verifyLicenseBtn.addEventListener('click', () => verifyLicenseStatus(false));
+        
+        if(savedLicense) {
+            verifyLicenseStatus(true);
+        }
+
         function saveMagicState() {
             try {
                 if (isTrickCompleted) {
@@ -587,19 +570,14 @@
                     localStorage.removeItem('magic_preview_state');
                     return; 
                 }
-
                 if (originalImageData) localStorage.setItem('magic_original_img', originalImageData);
                 else localStorage.removeItem('magic_original_img');
-
                 if (generatedImageData) localStorage.setItem('magic_generated_img', generatedImageData);
                 else localStorage.removeItem('magic_generated_img');
-
                 localStorage.setItem('magic_is_ai_ready', isAiReady);
                 localStorage.setItem('magic_is_trick_completed', isTrickCompleted);
                 localStorage.setItem('magic_preview_state', previewState);
-            } catch (e) {
-                console.warn("Storage full or error saving state:", e);
-            }
+            } catch (e) {}
         }
 
         function loadMagicState() {
@@ -625,7 +603,6 @@
 
         loadMagicState();
 
-        // Listeners for UI updates to drop highlight when user modifies input
         settingPrompt.addEventListener('input', (e) => {
             if (settingEffectMode.value === 'real-to-ai') {
                 promptRealToAi = e.target.value;
@@ -656,7 +633,6 @@
                 settingPrompt.classList.replace('focus:border-blue-400', 'focus:border-[#ffd60a]');
             }
 
-            // Handling the state of "Save as Draft" vs "Update Template" based on edit index
             if (currentEditIndex > -1) {
                 savePromptBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Update Template`;
                 savePromptBtn.className = 'flex-1 flex items-center justify-center gap-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30';
@@ -676,7 +652,6 @@
         }
 
         settingEffectMode.addEventListener('change', () => {
-            // Cancel edit if user switches global mode to prevent accidental overwrites across modes
             if (currentEditIndex > -1) {
                 currentEditIndex = -1;
             }
@@ -697,9 +672,7 @@
                 videoElement.srcObject = stream;
                 currentStream = stream;
                 videoElement.play();
-            } catch (err) {
-                console.error("Camera Error:", err);
-            }
+            } catch (err) {}
         };
 
         window.stopCamera = function() {
@@ -725,9 +698,6 @@
             }, 2500);
         }
 
-        // ==========================================
-        // EDIT / RENDER TEMPLATE LIST LOGIC
-        // ==========================================
         window.startEditPrompt = function(index) {
             currentEditIndex = index;
             const item = savedPrompts[index];
@@ -746,7 +716,6 @@
 
         window.cancelEdit = function() {
             currentEditIndex = -1;
-            // Restore actual applied states to inputs
             settingEffectMode.value = effectMode;
             settingPrompt.value = effectMode === 'real-to-ai' ? promptRealToAi : promptAiToReal;
             settingTrigger.value = triggerMethod;
@@ -784,12 +753,9 @@
             let activeIndexInList = 0;
 
             visiblePrompts.forEach((item, index) => {
-                // Find actual global index in savedPrompts array safely
                 const actualIndex = savedPrompts.indexOf(item);
-
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Compare with current form values to highlight
                 const isActive = (item.mode === currentMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === currentTrigger && 
@@ -813,7 +779,6 @@
                 }
                 divItem.className = containerClass;
                 
-                // Click the card body to apply the template
                 divItem.onclick = () => { 
                     if (currentEditIndex > -1) currentEditIndex = -1;
                     
@@ -830,7 +795,6 @@
                     updateModeUI();
                 };
                 
-                // Main Content (Text and Pills)
                 const textSpan = document.createElement('span');
                 textSpan.className = `text-[15px] leading-relaxed mb-3 line-clamp-3 text-center px-2 ${isActive ? 'text-[#ffd60a] font-semibold' : (isBlue ? 'text-blue-200' : 'text-white')}`;
                 textSpan.textContent = item.text;
@@ -852,7 +816,6 @@
                     <span class="${pillClass} px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide">${delLabel}</span>
                 `;
                 
-                // Action Buttons Row (Bottom Centered)
                 const actionBtns = document.createElement('div');
                 actionBtns.className = 'flex items-center justify-center gap-6 w-full pt-3 mt-auto border-t border-white/10 relative z-10';
 
@@ -882,7 +845,6 @@
                 divItem.appendChild(pillsContainer);
                 divItem.appendChild(actionBtns);
 
-                // Checkmark di pojok kanan lurus area action buttons
                 if (isActive) {
                     const checkIcon = document.createElement('div');
                     checkIcon.className = "absolute bottom-4 right-5 text-[#ffd60a] z-0 opacity-90";
@@ -893,14 +855,12 @@
                 wrapper.appendChild(divItem);
                 listContainer.appendChild(wrapper);
 
-                // Dot Pagination
                 const dot = document.createElement('div');
                 dot.id = `set-dot-${index}`;
                 dot.className = `transition-all duration-300 rounded-full h-1.5 ${index === activeIndexInList ? 'w-4 bg-[#ffd60a]' : 'w-1.5 bg-gray-600'}`;
                 dotsContainer.appendChild(dot);
             });
 
-            // Scroll Sync for Settings
             requestAnimationFrame(() => {
                 if(listContainer.clientWidth > 0) {
                     listContainer.scrollLeft = activeIndexInList * listContainer.clientWidth;
@@ -940,7 +900,6 @@
             if (!currentVal) return;
 
             if (currentEditIndex > -1) {
-                // Update Existing Mode
                 savedPrompts[currentEditIndex] = {
                     text: currentVal, 
                     mode: currentMode,
@@ -949,9 +908,8 @@
                     delay: currentDelay
                 };
                 showNotification("✨ Template updated!");
-                cancelEdit(); // Saves to localstorage & updates UI inside cancelEdit
+                cancelEdit(); 
             } else {
-                // Save New Mode
                 if (!savedPrompts.some(p => p.text === currentVal && p.mode === currentMode && p.trigger === currentTrigger && p.transition === currentTransition && p.delay === currentDelay)) {
                     savedPrompts.unshift({ 
                         text: currentVal, 
@@ -969,23 +927,17 @@
 
         function deletePrompt(index) {
             savedPrompts.splice(index, 1);
-            
-            // Adjust edit index if we delete an item before it in the array
             if (currentEditIndex > index) {
                 currentEditIndex--;
             }
-            
             localStorage.setItem('saved_prompts', JSON.stringify(savedPrompts));
             renderPromptList();
-            
-            // Refresh Quick Switcher if it's currently open to sync state
             if (!document.getElementById('quick-switcher-modal').classList.contains('hidden')) {
                 renderQuickSwitcherList();
             }
         }
 
         window.openSettings = function(skipReset = false) {
-            // Only reset forms and cancel edit if we are not passing 'skipReset' flag
             if (!skipReset) {
                 currentEditIndex = -1; 
                 settingEffectMode.value = effectMode;
@@ -1009,11 +961,6 @@
         window.closeSettings = function() {
             googleApiKey = settingGoogleApiKey.value.trim();
             googleAiModel = settingGoogleModel.value.trim() || "gemini-3.1-flash-image-preview";
-            
-            // Only apply settings if we are NOT in edit mode. 
-            // If in edit mode, user is just browsing/editing without wanting to apply immediately.
-            // But usually, closing settings applies current config.
-            
             effectMode = settingEffectMode.value;
             triggerMethod = settingTrigger.value;
             transitionType = settingTransition.value;
@@ -1040,6 +987,8 @@
             localStorage.setItem('trigger_method', triggerMethod);
             localStorage.setItem('black_screen_enabled', isBlackScreenEnabled);
             localStorage.setItem('black_screen_delay', blackScreenDelaySec);
+            
+            verifyLicenseStatus(true);
 
             settingsModal.classList.add('opacity-0');
             settingsContainer.classList.remove('scale-100');
@@ -1048,13 +997,10 @@
             setTimeout(() => {
                 settingsModal.classList.remove('flex');
                 settingsModal.classList.add('hidden');
-                currentEditIndex = -1; // clear edit mode after closing
+                currentEditIndex = -1; 
             }, 300);
         };
 
-        // ==========================================
-        // QUICK SWITCHER LOGIC (Carousel Version)
-        // ==========================================
         window.openQuickSwitcher = function() {
             activeQuickTab = effectMode;
             updateQuickTabs();
@@ -1130,7 +1076,6 @@
                 const actualIndex = savedPrompts.indexOf(item);
                 const isBlue = item.mode === 'ai-to-real';
                 
-                // Cek apakah item ini adalah template yang saat ini sedang aktif secara global
                 const isActive = (item.mode === effectMode && 
                                   item.text === currentActivePromptText && 
                                   (item.trigger || 'tap') === triggerMethod && 
@@ -1184,7 +1129,6 @@
                 divItem.appendChild(textSpan);
                 divItem.appendChild(bottomRow);
                 
-                // Checkmark di pojok kanan bawah
                 if(isActive) {
                     const checkIcon = document.createElement('div');
                     checkIcon.className = "absolute bottom-4 right-5 text-[#ffd60a] z-0 opacity-90";
@@ -1192,7 +1136,6 @@
                     divItem.appendChild(checkIcon);
                 }
 
-                // Action Buttons Row (Hanya tombol Delete untuk Quick Switcher agar tidak salah pencet)
                 const actionBtns = document.createElement('div');
                 actionBtns.className = 'flex items-center justify-center w-full pt-3 mt-4 border-t border-white/10 relative z-10';
 
@@ -1203,7 +1146,6 @@
                     e.stopPropagation();
                     if(actualIndex > -1) {
                         deletePrompt(actualIndex);
-                        // Refresh the UI within Quick Switcher
                         renderQuickSwitcherList();
                     }
                 };
@@ -1214,14 +1156,12 @@
                 wrapper.appendChild(divItem);
                 listContainer.appendChild(wrapper);
 
-                // Dot Pagination
                 const dot = document.createElement('div');
                 dot.id = `qs-dot-${index}`;
                 dot.className = `transition-all duration-300 rounded-full h-1.5 ${index === activeIndexInList ? 'w-4 bg-[#ffd60a]' : 'w-1.5 bg-gray-600'}`;
                 dotsContainer.appendChild(dot);
             });
 
-            // Scroll ke template yang aktif
             requestAnimationFrame(() => {
                 if(listContainer.clientWidth > 0) {
                     listContainer.scrollLeft = activeIndexInList * listContainer.clientWidth;
@@ -1229,7 +1169,6 @@
                 }
             });
 
-            // Update titik waktu di scroll
             listContainer.onscroll = () => {
                 const itemWidth = listContainer.clientWidth; 
                 if (itemWidth > 0) {
@@ -1253,9 +1192,8 @@
         }
 
         function applyQuickTemplate(template) {
-            currentEditIndex = -1; // Reset edit state safely
+            currentEditIndex = -1; 
             
-            // Apply to memory
             effectMode = template.mode;
             if (effectMode === 'real-to-ai') {
                 promptRealToAi = template.text;
@@ -1266,14 +1204,12 @@
             transitionType = template.transition || 'fade';
             fadeDelaySec = template.delay !== undefined ? template.delay : 2;
             
-            // Sync with Settings UI
             settingEffectMode.value = effectMode;
             settingPrompt.value = template.text;
             settingTrigger.value = triggerMethod;
             settingTransition.value = transitionType;
             settingDelay.value = fadeDelaySec;
             
-            // Save to localStorage immediately
             localStorage.setItem('effect_mode', effectMode);
             localStorage.setItem('prompt_real_to_ai', promptRealToAi);
             localStorage.setItem('prompt_ai_to_real', promptAiToReal);
@@ -1281,12 +1217,10 @@
             localStorage.setItem('transition_type', transitionType);
             localStorage.setItem('trigger_method', triggerMethod);
             
-            // Visual feedback & Reset state
             updateModeUI(); 
             closeQuickSwitcher();
             showNotification("✨ Template applied!");
             
-            // Handle specific logic for ai-to-real
             if (effectMode === 'ai-to-real') {
                 aiToRealPrepSection.classList.remove('hidden');
             } else {
@@ -1294,7 +1228,6 @@
                 isPrepModeActive = false; 
             }
             
-            // Wipe trick data when changing templates to avoid confusion
             originalImageData = null;
             generatedImageData = null;
             isAiReady = false;
@@ -1303,7 +1236,6 @@
             saveMagicState();
             galleryThumbnail.src = `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}`;
         }
-        // ==========================================
 
         window.enterPrepMode = function() {
             googleApiKey = settingGoogleApiKey.value.trim();
@@ -1326,17 +1258,15 @@
         };
 
         async function generateAiImage(base64Data) {
-            if (!window.lucidAuth || !window.lucidAuth.currentUser) {
+            if (!isLicenseValid) {
                 isAiReady = false;
                 flashAutoText.classList.add('opacity-0');
                 if (!galleryModal.classList.contains('hidden')) {
                     previewLoadingDot.classList.add('opacity-0');
                 }
-                
-                showNotification("⚠️ Login Required.");
-                
+                showNotification("⚠️ Invalid License. Check Settings.");
                 if (isPrepModeActive) {
-                    prepAiStatus.textContent = 'Login Required';
+                    prepAiStatus.textContent = 'Invalid License';
                     prepAiStatus.classList.replace('text-[#ffd60a]', 'text-red-400');
                 }
                 return;
@@ -1419,7 +1349,6 @@
             }
         }
 
-        // --- Event Listeners: Shutter ---
         shutterBtn.addEventListener('click', () => {
             if (videoElement.readyState >= 2) {
                 flashOverlay.classList.remove('shutter-flash');
@@ -1538,7 +1467,6 @@
             galleryModal.style.backgroundColor = 'rgba(0,0,0,1)';
         });
 
-        // --- Logic Native Share ---
         async function shareImageToDevice(dataUrl) {
             if (!dataUrl) return;
             if (navigator.vibrate) navigator.vibrate(50);
@@ -1566,11 +1494,9 @@
                     setTimeout(() => { window.location.href = 'photos-redirect://'; }, 800);
                 }
             } catch (error) {
-                console.error("Share failed/cancelled:", error);
             }
         }
 
-        // --- Logic Black Screen ---
         function startBlackScreenTimer() {
             if (!isBlackScreenEnabled) return;
             clearTimeout(blackScreenTimer);
@@ -1584,7 +1510,6 @@
             blackScreenOverlay.classList.add('opacity-0', 'pointer-events-none');
         }
 
-        // --- Logic Gestures ---
         let scale = 1, startScale = 1; 
         let posX = 0, posY = 0, swipeDeltaY = 0; 
         let startDistance = 0, startPanX = 0, startPanY = 0;
@@ -1775,10 +1700,7 @@
             setTimeout(() => {
                 galleryModal.classList.add('hidden');
                 galleryModal.classList.remove('flex');
-                
-                if(document.getElementById('login-overlay').style.display === 'none'){
-                    window.initCamera();
-                }
+                window.initCamera();
             }, 400); 
         }
 
@@ -1840,118 +1762,8 @@
         }
 
         window.addEventListener('load', () => {
-            if (localStorage.getItem('lucid_auth_status') === 'true') {
-                window.initCamera();
-            }
+            window.initCamera();
         });
-    </script>
-
-    <!-- Firebase Auth Logic (Background Check) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC-0oRlqQ7odJJYXIyaQX_MlAUNcJKk0WU",
-            authDomain: "lucidbyheri.firebaseapp.com",
-            projectId: "lucidbyheri",
-            storageBucket: "lucidbyheri.firebasestorage.app",
-            messagingSenderId: "282347124526",
-            appId: "1:282347124526:web:552c724fae9fc433912cbf"
-        };
-
-        let app, auth, provider;
-
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            provider = new GoogleAuthProvider();
-            setPersistence(auth, browserLocalPersistence);
-            
-            window.lucidAuth = auth;
-        } catch(e) {
-            console.error("Firebase Initialization Error:", e);
-        }
-
-        const loginOverlay = document.getElementById('login-overlay');
-        const googleLoginBtn = document.getElementById('google-login-btn');
-        const loginLoading = document.getElementById('login-loading');
-        
-        const logoutBtn = document.getElementById('logout-btn');
-        const userEmailDisplay = document.getElementById('user-email-display');
-
-        if(auth) {
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    localStorage.setItem('lucid_auth_status', 'true');
-                    userEmailDisplay.textContent = user.email || 'Verified User';
-                    
-                    if (loginOverlay.style.display !== 'none') {
-                        loginLoading.textContent = "Login Successful!";
-                        loginLoading.classList.remove('animate-pulse');
-                        loginLoading.classList.replace('text-[#ffd60a]', 'text-green-400');
-                        
-                        setTimeout(() => {
-                            loginOverlay.style.opacity = '0';
-                            setTimeout(() => {
-                                loginOverlay.style.display = 'none';
-                                if(typeof window.initCamera === 'function') window.initCamera();
-                            }, 500);
-                        }, 500);
-                    }
-                } else {
-                    localStorage.setItem('lucid_auth_status', 'false');
-                    
-                    loginOverlay.style.display = 'flex';
-                    setTimeout(() => {
-                        loginOverlay.style.opacity = '1';
-                    }, 10);
-                    loginLoading.textContent = "";
-                    
-                    if(typeof window.stopCamera === 'function') window.stopCamera();
-                }
-            });
-
-            googleLoginBtn.addEventListener('click', async () => {
-                try {
-                    googleLoginBtn.disabled = true;
-                    googleLoginBtn.classList.add('opacity-50', 'pointer-events-none');
-                    loginLoading.textContent = "Opening Google Login...";
-                    loginLoading.classList.add('animate-pulse');
-                    loginLoading.classList.replace('text-green-400', 'text-[#ffd60a]');
-                    
-                    await signInWithPopup(auth, provider);
-                    
-                } catch (error) {
-                    console.error("Login Error:", error);
-                    loginLoading.textContent = "Login failed. Please try again.";
-                    loginLoading.classList.replace('text-[#ffd60a]', 'text-red-500');
-                    loginLoading.classList.remove('animate-pulse');
-                } finally {
-                    googleLoginBtn.disabled = false;
-                    googleLoginBtn.classList.remove('opacity-50', 'pointer-events-none');
-                }
-            });
-
-            if(logoutBtn) {
-                logoutBtn.addEventListener('click', async () => {
-                    try {
-                        const confirmLogout = confirm("Are you sure you want to logout?");
-                        if (confirmLogout) {
-                            await signOut(auth);
-                            window.closeSettings();
-                        }
-                    } catch(err) {
-                        console.error("Logout Error:", err);
-                        alert("Logout failed. Please try again.");
-                    }
-                });
-            }
-        } else {
-            loginLoading.textContent = "Firebase is not configured. Check the HTML code.";
-            loginLoading.classList.replace('text-[#ffd60a]', 'text-red-500');
-            loginLoading.classList.remove('animate-pulse');
-        }
     </script>
 </body>
 </html>
