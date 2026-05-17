@@ -209,130 +209,131 @@
             
             <div class="p-6 custom-scrollbar flex-1 min-h-0 overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
                 
-                <div class="mb-7">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Modes & Prompt</h3>
-                    
-                    <div class="mb-4">
-                        <select id="setting-effect-mode" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
-                            <option value="real-to-ai">Mode: Real ➔ AI</option>
-                            <option value="ai-to-real">Mode: AI ➔ Real</option>
-                        </select>
-                    </div>
-
-                    <div id="ai-to-real-prep-section" class="hidden bg-blue-900/10 p-4 rounded-xl border border-blue-500/20 mb-4">
-                        <div class="mb-3">
-                            <h4 class="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">Prepare AI to Real Photo</h4>
-                            <p class="text-xs text-gray-400 leading-relaxed">
-                                Pre-capture the photo backstage. The AI-generated image will be ready on standby in the gallery thumbnail.
-                            </p>
-                        </div>
-                        <button onclick="window.enterPrepMode()" class="w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-lg py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30 shadow-sm mt-2">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                            Take Photo
-                        </button>
-                        
-                        <div id="prep-preview-container" class="hidden mt-3 relative w-full h-32 bg-black/40 rounded-lg border border-white/10 overflow-hidden flex flex-col items-center justify-center shadow-inner">
-                            <img id="prep-preview-img" src="" class="absolute inset-0 w-full h-full object-cover opacity-60">
-                            <div class="relative z-10 flex flex-col items-center justify-center bg-black/60 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/5">
-                                <span id="prep-ai-status" class="text-[11px] font-bold text-[#ffd60a] tracking-wide">Processing AI...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 border-t border-white/5">
-                        <div class="flex justify-between items-center pl-1 mb-3">
-                            <h3 id="prompt-section-title" class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest flex items-center gap-1.5">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                Template Editor
-                            </h3>
-                        </div>
-
-                        <div class="flex gap-2 mb-3 bg-black/20 p-2.5 rounded-xl border border-white/5">
-                            <div class="flex-[1.2]">
-                                <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider">Trigger</label>
-                                <select id="setting-trigger" class="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd60a] transition-colors appearance-none">
-                                    <option value="tap">Tap</option>
-                                    <option value="swipe-up">Swipe Up</option>
-                                </select>
-                            </div>
-                            <div class="flex-1">
-                                <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider">Effect</label>
-                                <select id="setting-transition" class="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd60a] transition-colors appearance-none">
-                                    <option value="fade">Fade</option>
-                                    <option value="none">Instant</option>
-                                </select>
-                            </div>
-                            <div class="flex-[0.8]">
-                                <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider text-center">Delay (s)</label>
-                                <input type="number" id="setting-delay" class="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd60a] transition-colors text-center" min="0" step="0.1">
-                            </div>
-                        </div>
-                        
-                        <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your prompt here..."></textarea>
-                        
-                        <div class="flex gap-2">
-                            <button id="save-prompt-btn" onclick="window.saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                Save as Draft
-                            </button>
-                            <button id="cancel-edit-btn" onclick="window.cancelEdit()" class="hidden px-4 flex items-center justify-center bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-xl font-medium transition-all text-sm border border-white/10">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-
-                        <div class="pt-5 border-t border-white/5 mt-4 -mx-6">
-                            <label class="block text-sm text-gray-400 mb-3 font-medium px-6">Saved Templates</label>
-                            <div class="relative w-full flex flex-col min-h-0">
-                                <div id="prompt-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
-                                </div>
-                                <div id="settings-prompt-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-7 pt-5 border-t border-white/5">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">API Configuration</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
-                            <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
-                            <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-7 pt-5 border-t border-white/5">
-                    <div class="flex justify-between items-center pl-1 mb-4">
-                        <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="setting-black-screen" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ffd60a]"></div>
-                        </label>
-                    </div>
-                    <div class="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
-                        <div class="flex-1">
-                            <label class="block text-sm text-gray-300 font-medium">Delay</label>
-                            <span class="text-[10px] text-gray-500">Min 3 seconds</span>
-                        </div>
-                        <input type="number" id="setting-black-screen-delay" class="w-16 bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="3" step="0.5">
-                    </div>
-                </div>
-
-                <div class="pt-5 border-t border-white/5 pb-2">
-                    <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">License Activation</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <input type="text" id="setting-license-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-blue-400 focus:bg-black/60 transition-colors placeholder-gray-600 font-mono uppercase" placeholder="Enter License Code...">
-                        </div>
-                        <button id="verify-license-btn" class="w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30">
-                            Verify License
+                <div id="license-section" class="mb-7 pb-5 border-b border-white/5">
+                    <h3 class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest pl-1 mb-4">Activation</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="setting-license-name" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Your Name">
+                        <input type="text" id="setting-license-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600 font-mono uppercase" placeholder="License Code">
+                        <button id="verify-license-btn" class="w-full flex items-center justify-center gap-2 bg-[#ffd60a]/20 hover:bg-[#ffd60a]/30 text-[#ffd60a] font-bold rounded-xl py-3.5 active:scale-[0.98] transition-all text-sm border border-[#ffd60a]/30 mt-2">
+                            Activate App
                         </button>
                         <div id="license-status" class="text-xs text-center font-medium h-4"></div>
+                    </div>
+                </div>
+
+                <div id="main-settings-content" class="transition-opacity duration-300 opacity-30 pointer-events-none">
+                    <div class="mb-7">
+                        <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-1">Modes & Prompt</h3>
+                        
+                        <div class="mb-4">
+                            <select id="setting-effect-mode" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors appearance-none">
+                                <option value="real-to-ai">Mode: Real ➔ AI</option>
+                                <option value="ai-to-real">Mode: AI ➔ Real</option>
+                            </select>
+                        </div>
+
+                        <div id="ai-to-real-prep-section" class="hidden bg-blue-900/10 p-4 rounded-xl border border-blue-500/20 mb-4">
+                            <div class="mb-3">
+                                <h4 class="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1.5">Prepare AI to Real Photo</h4>
+                                <p class="text-xs text-gray-400 leading-relaxed">
+                                    Pre-capture the photo backstage. The AI-generated image will be ready on standby in the gallery thumbnail.
+                                </p>
+                            </div>
+                            <button onclick="window.enterPrepMode()" class="w-full flex items-center justify-center gap-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-bold rounded-lg py-3 active:scale-[0.98] transition-all text-sm border border-blue-500/30 shadow-sm mt-2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                Take Photo
+                            </button>
+                            
+                            <div id="prep-preview-container" class="hidden mt-3 relative w-full h-32 bg-black/40 rounded-lg border border-white/10 overflow-hidden flex flex-col items-center justify-center shadow-inner">
+                                <img id="prep-preview-img" src="" class="absolute inset-0 w-full h-full object-cover opacity-60">
+                                <div class="relative z-10 flex flex-col items-center justify-center bg-black/60 px-3 py-1.5 rounded-md backdrop-blur-sm border border-white/5">
+                                    <span id="prep-ai-status" class="text-[11px] font-bold text-[#ffd60a] tracking-wide">Processing AI...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/5">
+                            <div class="flex justify-between items-center pl-1 mb-3">
+                                <h3 id="prompt-section-title" class="text-[11px] font-bold text-[#ffd60a] uppercase tracking-widest flex items-center gap-1.5">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                    Template Editor
+                                </h3>
+                            </div>
+
+                            <div class="flex gap-2 mb-3 bg-black/20 p-2.5 rounded-xl border border-white/5">
+                                <div class="flex-[1.2]">
+                                    <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider">Trigger</label>
+                                    <select id="setting-trigger" class="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd60a] transition-colors appearance-none">
+                                        <option value="tap">Tap</option>
+                                        <option value="swipe-up">Swipe Up</option>
+                                    </select>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider">Effect</label>
+                                    <select id="setting-transition" class="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd60a] transition-colors appearance-none">
+                                        <option value="fade">Fade</option>
+                                        <option value="none">Instant</option>
+                                    </select>
+                                </div>
+                                <div class="flex-[0.8]">
+                                    <label class="block text-[10px] text-gray-400 mb-1.5 font-medium px-1 uppercase tracking-wider text-center">Delay (s)</label>
+                                    <input type="number" id="setting-delay" class="w-full bg-black/40 border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-[#ffd60a] transition-colors text-center" min="0" step="0.1">
+                                </div>
+                            </div>
+                            
+                            <textarea id="setting-prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 resize-none h-28 transition-colors placeholder-gray-600 leading-relaxed mb-3" placeholder="Type your prompt here..."></textarea>
+                            
+                            <div class="flex gap-2">
+                                <button id="save-prompt-btn" onclick="window.saveCurrentPrompt()" class="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl py-3 active:scale-[0.98] transition-all text-sm border border-white/10">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                    Save as Draft
+                                </button>
+                                <button id="cancel-edit-btn" onclick="window.cancelEdit()" class="hidden px-4 flex items-center justify-center bg-gray-500/20 hover:bg-gray-500/40 text-gray-300 rounded-xl font-medium transition-all text-sm border border-white/10">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+
+                            <div class="pt-5 border-t border-white/5 mt-4 -mx-6">
+                                <label class="block text-sm text-gray-400 mb-3 font-medium px-6">Saved Templates</label>
+                                <div class="relative w-full flex flex-col min-h-0">
+                                    <div id="prompt-list" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full flex-1 min-h-0" style="-webkit-overflow-scrolling: touch;">
+                                    </div>
+                                    <div id="settings-prompt-dots" class="flex justify-center items-center gap-1.5 mt-5 h-2 w-full px-6 shrink-0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-7 pt-5 border-t border-white/5">
+                        <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest pl-1 mb-4">API Configuration</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2 font-medium">Google API Key</label>
+                                <input type="password" id="setting-google-api-key" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="Enter AI Studio key...">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2 font-medium">Google AI Model</label>
+                                <input type="text" id="setting-google-model" class="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors placeholder-gray-600" placeholder="gemini-3.1-flash-image-preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-5 border-t border-white/5 pb-2">
+                        <div class="flex justify-between items-center pl-1 mb-4">
+                            <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Black Screen Mode</h3>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="setting-black-screen" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#ffd60a]"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-3 bg-black/20 p-3 rounded-xl border border-white/5">
+                            <div class="flex-1">
+                                <label class="block text-sm text-gray-300 font-medium">Delay</label>
+                                <span class="text-[10px] text-gray-500">Min 3 seconds</span>
+                            </div>
+                            <input type="number" id="setting-black-screen-delay" class="w-16 bg-black/40 border border-white/10 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-[#ffd60a] focus:bg-black/60 transition-colors text-center" min="3" step="0.5">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -364,7 +365,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC-0oRlqQ7odJJYXIyaQX_MlAUNcJKk0WU",
@@ -436,7 +437,10 @@
         const canvas = document.getElementById('photo-canvas');
         const ctx = canvas.getContext('2d');
 
+        const licenseSection = document.getElementById('license-section');
+        const mainSettingsContent = document.getElementById('main-settings-content');
         const licenseInput = document.getElementById('setting-license-key');
+        const licenseNameInput = document.getElementById('setting-license-name');
         const verifyLicenseBtn = document.getElementById('verify-license-btn');
         const licenseStatus = document.getElementById('license-status');
 
@@ -504,18 +508,38 @@
         settingBlackScreenDelay.value = blackScreenDelaySec;
         
         let savedLicense = localStorage.getItem('lucid_license') || '';
+        let savedName = localStorage.getItem('lucid_license_name') || '';
         if(savedLicense) licenseInput.value = savedLicense;
+        if(savedName) licenseNameInput.value = savedName;
+
+        function updateSettingsAccess() {
+            if (isLicenseValid) {
+                licenseSection.classList.add('hidden');
+                mainSettingsContent.classList.remove('opacity-30', 'pointer-events-none');
+            } else {
+                licenseSection.classList.remove('hidden');
+                mainSettingsContent.classList.add('opacity-30', 'pointer-events-none');
+            }
+        }
 
         async function verifyLicenseStatus(silent = false) {
             const code = licenseInput.value.trim().toUpperCase();
+            const name = licenseNameInput.value.trim();
+
             if(!code) {
                 isLicenseValid = false;
-                licenseStatus.textContent = '';
+                if(!silent) licenseStatus.textContent = '';
                 localStorage.removeItem('lucid_license');
+                localStorage.removeItem('lucid_license_name');
+                updateSettingsAccess();
                 return;
             }
 
             if(!silent) {
+                if(!name) {
+                    showNotification("⚠️ Please enter your name.");
+                    return;
+                }
                 verifyLicenseBtn.disabled = true;
                 verifyLicenseBtn.textContent = 'Verifying...';
                 verifyLicenseBtn.classList.add('opacity-50');
@@ -525,30 +549,36 @@
                 const docRef = doc(db, 'licenses', code);
                 const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists()) {
+                if (docSnap.exists() && docSnap.data().status === 'active') {
                     isLicenseValid = true;
                     localStorage.setItem('lucid_license', code);
-                    licenseStatus.textContent = 'License is Valid';
-                    licenseStatus.className = 'text-xs text-center mt-2 font-medium text-green-400';
-                    if(!silent) showNotification("✨ License verified successfully.");
+                    if(name) localStorage.setItem('lucid_license_name', name);
+
+                    if(!silent && name) {
+                        await setDoc(docRef, { name: name }, { merge: true });
+                    }
+
+                    if(!silent) showNotification("✨ App activated successfully.");
+                    updateSettingsAccess();
                 } else {
                     isLicenseValid = false;
                     localStorage.removeItem('lucid_license');
-                    licenseStatus.textContent = 'Invalid or Expired License';
-                    licenseStatus.className = 'text-xs text-center mt-2 font-medium text-red-400';
-                    if(!silent) showNotification("⚠️ License is invalid.");
+                    if(!silent) {
+                        licenseStatus.textContent = 'Invalid or Blocked License';
+                        licenseStatus.className = 'text-xs text-center mt-2 font-medium text-red-400';
+                        showNotification("⚠️ License is invalid.");
+                    }
+                    updateSettingsAccess();
                 }
             } catch (error) {
-                console.error("License verification error:", error);
                 if (savedLicense === code) {
-                    isLicenseValid = true;
-                    licenseStatus.textContent = 'Offline (Cached License)';
-                    licenseStatus.className = 'text-xs text-center mt-2 font-medium text-[#ffd60a]';
+                    isLicenseValid = true; 
+                    updateSettingsAccess();
                 }
             } finally {
                 if(!silent) {
                     verifyLicenseBtn.disabled = false;
-                    verifyLicenseBtn.textContent = 'Verify License';
+                    verifyLicenseBtn.textContent = 'Activate App';
                     verifyLicenseBtn.classList.remove('opacity-50');
                 }
             }
@@ -558,6 +588,8 @@
         
         if(savedLicense) {
             verifyLicenseStatus(true);
+        } else {
+            updateSettingsAccess();
         }
 
         function saveMagicState() {
@@ -1341,7 +1373,6 @@
                     tempImg.src = generatedImageData;
                 }
             } catch (error) {
-                console.error("Fetch Error:", error);
                 flashAutoText.classList.add('opacity-0');
                 previewLoadingDot.classList.add('opacity-0');
                 prepAiStatus.textContent = 'Error: API Failed';
